@@ -1,4 +1,4 @@
-# electron-quick-start
+# SimBum
 
 **Clone and run for a quick way to see Electron in action.**
 

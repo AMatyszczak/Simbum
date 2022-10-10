@@ -1,0 +1,59 @@
+@font-face {
+  font-family: Simsowo;
+  src: url('font/Loucos Lyne - thesimssansbold.otf');
+}
+
+@font-face {
+  font-family: Simsowo2;
+  src: url('font/Loucos Lyne - thesimssansboldsc.otf');
+}
+
+html,
+body {
+  height: 100%;
+  font-family: Simsowo;
+}
+
+.Content {
+  width: 100%;
+  height: 100%;
+
+  padding-top: 8px;
+  padding-bottom: 8px;
+
+  display: flex;
+  flex-flow: column nowrap;
+
+  justify-content: center;
+  align-items: center;
+}
+
+.fill {
+  overflow: hidden;
+}
+
+.Image {
+  width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+}
+
+input.ImageTitle {
+  max-width: 100%;
+  min-width: 70%;
+  text-align: center;
+}
+
+textarea.ImageDescription {
+  flex: 1 1 auto;
+  max-width: 100%;
+  min-width: 80%;
+}
+
+textarea,
+input {
+  font-family: inherit;
+  font-size: inherit;
+  font-style: inherit;
+  font-weight: inherit;
+}
