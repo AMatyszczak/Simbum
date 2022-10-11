@@ -11,7 +11,8 @@
 html,
 body {
   height: 100%;
-  font-family: Simsowo;
+
+  background: linear-gradient(#ebeffc, #c1d3e9 25%);
 }
 
 .Content {
@@ -39,21 +40,59 @@ body {
 }
 
 input.ImageTitle {
+  font-family: Simsowo2;
+
   max-width: 100%;
   min-width: 70%;
+
   text-align: center;
+  font-size: 225%;
+
+  color: #1452ae;
+  background-color: #f0f7fb;
+  border: none;
+  background: unset;
+}
+
+.ImageDescriptionBox {
+  flex: 1 1 auto;
+  display: flex;
+  margin-top: 4px;
+
+  min-width: 80%;
+  max-height: 50%;
+  background-color: #f0f7fb;
+
+  align-items: center;
+
+  overflow: auto;
+}
+
+.ImageDescriptionContent {
+  font-family: Simsowo;
+  color: #1452ae;
+
+  margin: 0 auto;
+  background-color: #f0f7fb;
+
+  max-width: 100%;
+  max-height: 100%;
+
+  text-align: center;
+  outline: unset;
 }
 
 textarea.ImageDescription {
-  flex: 1 1 auto;
-  max-width: 100%;
-  min-width: 80%;
-}
+  font-family: Simsowo;
+  font-size: Simsowo;
+  font-style: Simsowo;
+  font-weight: Simsowo;
+  width: 100%;
 
-textarea,
-input {
-  font-family: inherit;
-  font-size: inherit;
-  font-style: inherit;
-  font-weight: inherit;
+  text-align: center;
+
+  background-color: transparent;
+  color: #1452ae;
+  outline: none;
+  border: none;
 }
