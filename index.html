@@ -15,14 +15,18 @@
   </head>
   <body>
     <div class="Content">
-      <input class="ImageTitle" type="text" value="PRZYJACIELE" />
-      <div class="fill">
-        <img
-          id="dropped_image"
-          draggable="false"
-          class="Image"
-          src="styles/img_placeholder.png"
-        />
+      <input class="ImageTitle" type="text" value="Przyjaciele" />
+      <div class="fill ImageSwitcher">
+        <button class="PreviousImageButton">lewo</button>
+        <div class="ImageContent">
+          <img
+            id="dropped_image"
+            draggable="false"
+            class="Image"
+            src="styles/img_placeholder.png"
+          />
+        </div>
+        <button class="NextImageButton">prawo</button>
       </div>
       <div class="ImageDescriptionBox">
         <span class="ImageDescriptionContent" contenteditable role="textbox">
