@@ -15,11 +15,11 @@ body {
   background: linear-gradient(#ebeffc, #c1d3e9 25%);
 
   overflow: hidden;
-  /* padding-top: 8px; */
-  padding-bottom: 8px;
 }
 
 .Content {
+  padding-top: 8px;
+  padding-bottom: 8px;
   width: 100%;
   height: 100%;
   display: flex;
@@ -34,10 +34,10 @@ input.ImageTitle {
   max-width: 100%;
   min-width: 70%;
   max-height: 8%;
+  min-height: 8%;
 
   text-align: center;
-  font-size: min(575%, 8vw);
-  /* font-size: 575%; */
+  font-size: min(10vh, 10vw);
 
   color: #1452ae;
   background-color: #f0f7fb;
@@ -47,13 +47,14 @@ input.ImageTitle {
 }
 
 .Image {
-  width: 100%;
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  width: auto;
+  height: 100%;
 }
 
 .ImageSwitcher {
   height: fit-content;
+  min-height: 8%;
   max-height: 66%;
   max-width: 80%;
   display: flex;
@@ -62,18 +63,20 @@ input.ImageTitle {
   justify-content: center;
 }
 
-.PreviousImageButton {
-  height: 10%;
-  width: 10%;
+button.PreviousImageButton {
   min-width: 10%;
   max-width: 10%;
+
+  background: transparent;
+  border: unset;
 }
 
 .NextImageButton {
-  height: 10%;
-  width: 10%;
   min-width: 10%;
   max-width: 10%;
+
+  background: transparent;
+  border: unset;
 }
 
 .ImageDescriptionBox {
@@ -101,7 +104,7 @@ input.ImageTitle {
   max-height: 100%;
   padding: 0.3rem;
 
-  font-size: min(200%, 4vw);
+  font-size: min(2.75vh, 2.75vw);
 
   outline: unset;
 }

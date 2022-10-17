@@ -17,18 +17,24 @@
     <div class="Content">
       <input class="ImageTitle" type="text" value="Przyjaciele" />
       <div class="ImageSwitcher">
-        <button class="PreviousImageButton">lewo</button>
+        <button class="PreviousImageButton">
+          <img src="styles/buttons/button_left.png" class="Image" />
+        </button>
         <img
           id="dropped_image"
           draggable="false"
           class="Image"
           src="styles/img_placeholder.png"
         />
-        <button class="NextImageButton">prawo</button>
+        <button class="NextImageButton">
+          <img src="styles/buttons/button_right.png" class="Image" />
+        </button>
       </div>
       <div class="ImageDescriptionBox">
         <div class="ScrollbarBox">
-          <span class="ImageDescriptionText" contenteditable role="textbox"></span>
+          <span class="ImageDescriptionText" contenteditable role="textbox"
+            >bla bla
+          </span>
         </div>
       </div>
     </div>
