@@ -1,39 +1,36 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import icon from '../../assets/icon.svg';
+import button_left from '../../assets/buttons/button_left.png';
+// import button_left_disabled from '../../assets/buttons/button_left_disabled.png'
+import button_right from '../../assets/buttons/button_right.png';
+// import button_right_disabled from '../../assets/buttons/button_right_disabled.png'
+import placeholder from '../../assets/img_placeholder.png';
 import './App.css';
 
-const Hello = () => {
+const Simbum = () => {
   return (
-    <div>
-      <div className="Hello">
-        <img width="200" alt="icon" src={icon} />
+    <div className="Content">
+      <input className="ImageTitle" type="text" value="Przyjaciele" />
+      <div className="ImageSwitcher">
+        <button className="PreviousImageButton" type="button">
+          <img src={button_left} className="Image" alt="" />
+        </button>
+        <img
+          id="dropped_image"
+          draggable="false"
+          className="Image"
+          src={placeholder}
+          alt=""
+        />
+        <button className="NextImageButton" type="button">
+          <img src={button_right} className="Image" alt="" />
+        </button>
       </div>
-      <h1>electron-react-boilerplate</h1>
-      <div className="Hello">
-        <a
-          href="https://electron-react-boilerplate.js.org/"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="books">
-              📚
-            </span>
-            Read our docs
-          </button>
-        </a>
-        <a
-          href="https://github.com/sponsors/electron-react-boilerplate"
-          target="_blank"
-          rel="noreferrer"
-        >
-          <button type="button">
-            <span role="img" aria-label="folded hands">
-              🙏
-            </span>
-            Donate
-          </button>
-        </a>
+      <div className="ImageDescriptionBox">
+        <div className="ScrollbarBox">
+          <span className="ImageDescriptionText" role="textbox">
+            bla bla
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -43,7 +40,7 @@ export default function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Hello />} />
+        <Route path="/" element={<Simbum />} />
       </Routes>
     </Router>
   );
