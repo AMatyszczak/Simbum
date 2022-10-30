@@ -18,77 +18,76 @@ body {
   height: 100vh;
   overflow: hidden;
 
-  background: linear-gradient(#ebeffc, #c1d3e9 25%);
-
   display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background: linear-gradient(#ebeffc, #c1d3e9 25%);
+}
+
+.album-container {
+  height: 100vh;
   justify-content: center;
   align-items: center;
 }
 
-.Content {
-  /* padding-top: 8px;
-  padding-bottom: 8px; */
-  width: 100vw;
-  height: 100vh;
+.album-content {
   display: flex;
   flex-flow: column nowrap;
   justify-content: center;
-  align-items: center;
+  align-items: stretch;
+  max-width: 100vw;
+
+  input.album-title {
+    font-family: Simsowo2;
+  
+    text-align: center;
+    font-size: min(10vh, 10vw);
+  
+    color: #1452ae;
+    background-color: #f0f7fb;
+    border: none;
+    background: unset;
+    outline: unset;
+  }
+
+  .album-images-controller {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+
+    button.previous-album-image-button {
+      background: transparent;
+      border: unset;
+    }
+
+    button.next-album-image-button {
+      background: transparent;
+      border: unset;
+    }
+  }
 }
 
-input.ImageTitle {
-  font-family: Simsowo2;
-
-  text-align: center;
-  /* font-size: min(10vh, 10vw); */
-
-  color: #1452ae;
-  background-color: #f0f7fb;
-  border: none;
-  background: unset;
-  outline: unset;
+.album-image {
+  max-height: 70vh;
+  max-width: 70vw;
 }
 
-.Image {
-  object-fit: contain;
-  width: 100%
-  /* min-width: 20%;
-  min-height: 20%;
-  max-width: 20%;
-  max-height: 20%; */
+.button-image {
+  max-width: min(100vw, 64px);
+  max-height: min(100vh, 64px);
 }
 
-.ImageSwitcher {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-button.PreviousImageButton {
-  background: transparent;
-  border: unset;
-}
-
-button.NextImageButton {
-  background: transparent;
-  border: unset;
-}
-
-.ImageDescriptionBox {
-  display: flex;
+.album-image-description-container {
   margin-top: 8px;
-/* 
-  height: 26%;
-  min-height: 26%;
-  max-height: 26%; */
 
   background-color: #f0f7fb;
 
   padding: 0.6rem;
 }
 
-.ImageDescriptionText {
+.album-image-description-content {
   font-family: Simsowo;
   color: #1452ae;
   background-color: #f0f7fb;
@@ -99,12 +98,12 @@ button.NextImageButton {
   max-height: 100%;
   padding: 0.3rem;
 
-  /* font-size: min(2.75vh, 2.75vw); */
+  font-size: min(2.75vh, 2.75vw);
 
   outline: unset;
 }
 
-.ScrollbarBox {
+.album-image-description-scrollbar {
   display: flex;
   min-width: 100%;
   min-height: 100%;
