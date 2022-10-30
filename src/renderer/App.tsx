@@ -9,27 +9,39 @@ import './App.css';
 const Simbum = () => {
   return (
     <div className="Content">
-      <input className="ImageTitle" type="text" value="Przyjaciele" />
-      <div className="ImageSwitcher">
-        <button className="PreviousImageButton" type="button">
-          <img src={button_left} className="Image" alt="" />
-        </button>
-        <img
-          id="dropped_image"
-          draggable="false"
-          className="Image"
-          src={placeholder}
-          alt=""
-        />
-        <button className="NextImageButton" type="button">
-          <img src={button_right} className="Image" alt="" />
-        </button>
+      <div>
+        <input className="ImageTitle" type="text" value="Przyjaciele" />
       </div>
-      <div className="ImageDescriptionBox">
-        <div className="ScrollbarBox">
-          <span className="ImageDescriptionText" role="textbox">
-            bla bla
-          </span>
+      <div>
+        <div className="ImageSwitcher">
+          <div>
+            <button className="PreviousImageButton" type="button">
+              <img src={button_left} className="Image" alt="" />
+            </button>
+          </div>
+          <div>
+            <img
+              id="dropped_image"
+              draggable="false"
+              className="Image"
+              src={placeholder}
+              alt=""
+            />
+          </div>
+          <div>
+            <button className="NextImageButton" type="button">
+              <img src={button_right} className="Image" alt="" />
+            </button>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div className="ImageDescriptionBox">
+          <div className="ScrollbarBox">
+            <span className="ImageDescriptionText" role="textbox">
+              bla bla
+            </span>
+          </div>
         </div>
       </div>
     </div>
