@@ -1,12 +1,12 @@
-import { useLexicalComposerContext } from "@lexical/react/LexicalComposerContext";
+import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import {
   $getSelection,
   $isRangeSelection,
   KEY_TAB_COMMAND,
   COMMAND_PRIORITY_HIGH,
   CONTROLLED_TEXT_INSERTION_COMMAND,
-} from "lexical";
-import { useEffect } from "react";
+} from 'lexical';
+import { useEffect } from 'react';
 
 export default function TabulateOnTabPressPlugin() {
   const [editor] = useLexicalComposerContext();
@@ -20,9 +20,7 @@ export default function TabulateOnTabPressPlugin() {
           return false;
         }
         event.preventDefault();
-        return editor.dispatchCommand(
-          CONTROLLED_TEXT_INSERTION_COMMAND, '\t'
-        );
+        return editor.dispatchCommand(CONTROLLED_TEXT_INSERTION_COMMAND, '\t');
       },
       COMMAND_PRIORITY_HIGH
     );
