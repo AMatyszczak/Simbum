@@ -4,6 +4,7 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import './App.css';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
+import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { AutoLinkNode } from '@lexical/link';
@@ -12,11 +13,7 @@ import button_right from '../../assets/buttons/button_right.png';
 import button_left from '../../assets/buttons/button_left.png';
 import placeholder from '../../assets/img_placeholder.png';
 
-function Placeholder() {
-  return <div className="album-image-description-content" />;
-}
-
-function populateEditor() {
+function populateDescriptionEditor() {
   const root = $getRoot();
 
   const paragraphNode = $createParagraphNode();
@@ -25,7 +22,7 @@ function populateEditor() {
   root.append(paragraphNode);
 }
 
-function Editor() {
+function DescriptionEditor() {
   const initialConfig = {
     // The editor theme
     namespace: 'Simbumer',
@@ -33,7 +30,7 @@ function Editor() {
       throw error;
     },
     nodes: [AutoLinkNode],
-    editorState: populateEditor,
+    editorState: populateDescriptionEditor,
   };
 
   return (
@@ -47,7 +44,7 @@ function Editor() {
                 className="album-image-description-content"
               />
             }
-            placeholder={<Placeholder />}
+            placeholder={<div />}
           />
           <HistoryPlugin />
         </LexicalComposer>
@@ -59,7 +56,12 @@ function Editor() {
 const Simbum = () => {
   return (
     <div className="album-content">
-      <input className="album-title" type="text" defaultValue="Przyjaciele" />
+      <input
+        className="album-title-content"
+        type="text"
+        defaultValue="Przyjaciele"
+        spellCheck="false"
+      />
       <div className="album-images-controller">
         <button className="previous-album-image-button" type="button">
           <img src={button_left} className="button-image" alt="" />
@@ -76,7 +78,7 @@ const Simbum = () => {
         </button>
       </div>
 
-      <Editor />
+      <DescriptionEditor />
     </div>
   );
 };
