@@ -41,8 +41,9 @@ body {
   flex-flow: column wrap;
   justify-content: center;
   align-items: stretch;
+
   min-width: 82.5vw;
-  max-width: 82.5vw;
+  /* max-width: 82.5vw; */
 }
 
 .album-title-container {
@@ -105,8 +106,8 @@ body {
   min-height: 23vh;
   max-height: 23vh;
   width: 92%;
-  max-width: 92%;
-  min-width: 92%;
+  max-width: 82.5vw;
+  max-width: 82.5vw;
 
   margin-top: 1vh;
 
