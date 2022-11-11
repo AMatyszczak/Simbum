@@ -42,7 +42,7 @@ body {
   justify-content: center;
   align-items: stretch;
 
-  min-width: 82.5vw;
+  /* min-width: 82.5vw; */
   /* max-width: 82.5vw; */
 }
 
@@ -70,9 +70,6 @@ body {
   flex-flow: row nowrap;
   justify-content: center;
   align-items: center;
-
-  max-height: 24%;
-  min-height: 24%;
 }
 
 .album-content .album-images-controller button.previous-album-image-button {
@@ -106,8 +103,8 @@ body {
   min-height: 23vh;
   max-height: 23vh;
   width: 92%;
-  max-width: 82.5vw;
-  max-width: 82.5vw;
+  min-width: 77vw;
+  max-width: 77vw;
 
   margin-top: 1vh;
 
