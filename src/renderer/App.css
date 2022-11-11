@@ -41,8 +41,8 @@ body {
   flex-flow: column wrap;
   justify-content: center;
   align-items: stretch;
-  /* min-width: 80vw; */
-  max-width: 100vw;
+  min-width: 82.5vw;
+  max-width: 82.5vw;
 }
 
 .album-title-container {
@@ -102,14 +102,18 @@ body {
 
   background-color: #f0f7fb;
 
-  min-height: 24vh;
-  max-height: 24vh;
+  min-height: 23vh;
+  max-height: 23vh;
   width: 92%;
   max-width: 92%;
   min-width: 92%;
 
   margin-top: 1vh;
-  /* padding: 0.6rem; */
+
+  padding-top: 0.5vh;
+  padding-bottom: 0.5vh;
+  padding-right: 0.3vw;
+  padding-left: 0.3vw;
 }
 
 .album-image-description-content {
@@ -120,7 +124,7 @@ body {
   /* padding: 0.3rem; */
 
   font-size: min(2.75vh, 2.75vw);
-  min-height: 90%;
+  min-height: 80%;
 
   outline: unset;
 }
@@ -133,7 +137,6 @@ body {
   min-width: 100%;
   min-height: 100%;
   overflow-y: auto;
-  padding-right: 0.2rem;
 
   align-items: center;
   justify-content: center;
