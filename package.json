@@ -27,6 +27,7 @@
     "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
     "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
+    "package-win": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never --win",
     "prepare": "husky install",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
@@ -104,8 +105,6 @@
     "react-router-dom": "^6.3.0"
   },
   "devDependencies": {
-    "@lexical/react": "^0.5.0",
-    "lexical": "^0.5.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@svgr/webpack": "^6.3.1",
     "@teamsupercell/typings-for-css-modules-loader": "^2.5.1",
@@ -155,6 +154,7 @@
     "lint-staged": "^13.0.3",
     "mini-css-extract-plugin": "^2.6.1",
     "prettier": "^2.7.1",
+    "react-quill": "^2.0.0",
     "react-refresh": "^0.14.0",
     "react-test-renderer": "^18.2.0",
     "rimraf": "^3.0.2",
@@ -174,8 +174,8 @@
     "webpack-merge": "^5.8.0"
   },
   "build": {
-    "productName": "ElectronReact",
-    "appId": "org.erb.ElectronReact",
+    "productName": "SimBum",
+    "appId": "org.erb.SimBum",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
