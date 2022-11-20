@@ -12,6 +12,7 @@ import path from 'path';
 import { app, BrowserWindow, shell, ipcMain } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
+import fs from 'fs';
 import { resolveHtmlPath } from './util';
 
 class AppUpdater {
@@ -23,6 +24,8 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+fs.writeFileSync('/home/adrian/Desktop/hop/hop.txt', '123');
 
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
@@ -81,6 +84,7 @@ const createWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+      webSecurity: false,
     },
   });
 
