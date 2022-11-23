@@ -25,12 +25,26 @@ class AppUpdater {
 
 let mainWindow: BrowserWindow | null = null;
 
-fs.writeFileSync('/home/adrian/Desktop/hop/hop.txt', '123');
-
 ipcMain.on('ipc-example', async (event, arg) => {
   const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
   console.log(msgTemplate(arg));
   event.reply('ipc-example', msgTemplate('pong'));
+});
+
+ipcMain.on('image-added', async (event, arg) => {
+  const file = fs.readFileSync(arg[0]);
+  fs.writeFileSync('/home/adrian/Desktop/SimBumContent/img.png', file);
+});
+
+ipcMain.on('image-title-text-added', async (event, arg) => {
+  fs.writeFileSync('/home/adrian/Desktop/SimBumContent/title.txt', arg[0]);
+});
+
+ipcMain.on('image-description-text-added', async (event, arg) => {
+  fs.writeFileSync(
+    '/home/adrian/Desktop/SimBumContent/description.txt',
+    arg[0]
+  );
 });
 
 if (process.env.NODE_ENV === 'production') {

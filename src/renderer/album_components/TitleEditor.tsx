@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import path from 'path';
-import fs from 'fs';
 
 function TitleEditor() {
   const [value, setValue] = useState('Przyjaciele');
 
   useEffect(() => {
-    console.log('11', value, '/home/adrian/Desktop/hop');
-    // fs.writeFileSync('/home/adrian/Desktop/hop/hop.txt', '123');
+    window.electron.ipcRenderer.sendMessage('image-title-text-added', [value]);
   }, [value]);
   return (
     <input

@@ -1,8 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 
 function DescriptionEditor() {
   const [value, setValue] = useState('');
+
+  useEffect(() => {
+    window.electron.ipcRenderer.sendMessage('image-description-text-added', [
+      value,
+    ]);
+  }, [value]);
 
   const modules = {
     toolbar: false,
@@ -10,23 +16,6 @@ function DescriptionEditor() {
       matchVisual: false,
     },
   };
-
-  const formats = [
-    'header',
-    'font',
-    'size',
-    'bold',
-    'italic',
-    'underline',
-    'strike',
-    'blockquote',
-    'list',
-    'bullet',
-    'indent',
-    'link',
-    'image',
-    'video',
-  ];
 
   return (
     <div className="album-image-description-container">
@@ -36,7 +25,6 @@ function DescriptionEditor() {
           value={value}
           onChange={setValue}
           modules={modules}
-          formats={formats}
           className="album-image-description-content"
         />
       </div>

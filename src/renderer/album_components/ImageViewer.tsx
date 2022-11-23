@@ -11,6 +11,7 @@ function ImageViewer() {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       setImagePath(`file://${file.path}`);
+      window.electron.ipcRenderer.sendMessage('image-added', [file.path]);
     }
     e.preventDefault();
     e.stopPropagation();
