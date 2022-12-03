@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
@@ -45,6 +45,16 @@ ipcMain.on('image-description-text-added', async (event, arg) => {
     '/home/adrian/Desktop/SimBumContent/description.txt',
     arg[0]
   );
+});
+
+ipcMain.on('settings-select-path', async (event, arg) => {
+  if (mainWindow) {
+    const promise = await dialog.showOpenDialog(mainWindow, {
+      properties: ['openDirectory'],
+    });
+
+    const a = 1;
+  }
 });
 
 if (process.env.NODE_ENV === 'production') {

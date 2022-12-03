@@ -6,14 +6,19 @@ import 'react-quill/dist/quill.snow.css';
 import DescriptionEditor from './album_components/DescriptionEditor';
 import TitleEditor from './album_components/TitleEditor';
 import ImageViewer from './album_components/ImageViewer';
+import SettingsButtonComponent from './settings/SettingsButtonComponent';
+import SettingsComponent from './settings/SettingsComponent';
 
 const Simbum = () => {
   return (
-    <div className="album-content">
-      <TitleEditor />
-      <ImageViewer />
-      <DescriptionEditor />
-    </div>
+    <>
+      <SettingsButtonComponent />
+      <div className="album-content">
+        <TitleEditor />
+        <ImageViewer />
+        <DescriptionEditor />
+      </div>
+    </>
   );
 };
 
@@ -22,6 +27,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Simbum />} />
+        <Route path="/settings" element={<SettingsComponent />} />
       </Routes>
     </Router>
   );

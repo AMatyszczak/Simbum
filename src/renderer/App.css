@@ -63,7 +63,6 @@ body {
 
   margin-top: 1rem;
 }
-
 .album-content .album-images-controller button.previous-album-image-button {
   background: transparent;
   border: unset;
@@ -152,6 +151,19 @@ body {
 
 .ql-snow {
   border: none !important;
+}
+
+.settings-button {
+  /* position: relative; */
+  background: transparent;
+  border: unset;
+  position: absolute;
+  left: 0px;
+}
+
+.settings-icon {
+  width: 2em;
+  position: relative;
 }
 
 ::-webkit-scrollbar {

@@ -1,0 +1,25 @@
+.settings-content {
+  display: flex;
+  flex-flow: column;
+  justify-content: center;
+}
+
+.select-data-source-path-button {
+  border: unset;
+}
+
+.return-button {
+  position: absolute;
+  background: transparent;
+  border: unset;
+  left: 0px;
+  top: calc(50% - 5em);
+  width: 10em;
+  height: 10em;
+}
+
+.return-button-icon {
+  /* width: 10em; */
+  /* height: 10em; */
+  /* height: 1rem; */
+}

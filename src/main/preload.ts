@@ -4,7 +4,8 @@ export type Channels =
   | 'ipc-example'
   | 'image-title-text-added'
   | 'image-description-text-added'
-  | 'image-added';
+  | 'image-added'
+  | 'settings-select-path';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {
