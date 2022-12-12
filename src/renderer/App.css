@@ -63,6 +63,7 @@ body {
 
   margin-top: 1rem;
 }
+
 .album-content .album-images-controller button.previous-album-image-button {
   background: transparent;
   border: unset;
@@ -154,7 +155,6 @@ body {
 }
 
 .settings-button {
-  /* position: relative; */
   background: transparent;
   border: unset;
   position: absolute;

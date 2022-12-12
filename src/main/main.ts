@@ -13,10 +13,23 @@ import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
+import Store, { Schema } from 'electron-store';
 import { resolveHtmlPath } from './util';
+
+interface UserPreferences {
+  rootPath: string;
+}
+
+const schema: Schema<UserPreferences> = {
+  rootPath: {
+    type: 'string',
+  },
+};
+const store = new Store<UserPreferences>({ schema });
 
 class AppUpdater {
   constructor() {
+    console.log('rootPath', store.get('rootPath'));
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
     autoUpdater.checkForUpdatesAndNotify();
@@ -31,29 +44,56 @@ ipcMain.on('ipc-example', async (event, arg) => {
   event.reply('ipc-example', msgTemplate('pong'));
 });
 
-ipcMain.on('image-added', async (event, arg) => {
-  const file = fs.readFileSync(arg[0]);
-  fs.writeFileSync('/home/adrian/Desktop/SimBumContent/img.png', file);
+function createPathIfNotExists(p: string) {
+  if (!fs.existsSync(p)) {
+    fs.mkdirSync(p, { recursive: true });
+  }
+}
+
+function createPathToContent(rootPath: string, contentName: string) {
+  return path.join(rootPath, contentName);
+}
+
+ipcMain.on('image-added', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const file = fs.readFileSync(args[2]);
+    const contentName = args[1];
+    const contentPath = createPathToContent(rootPath, contentName);
+    createPathIfNotExists(contentPath);
+    fs.writeFileSync(`${contentPath}/img.png`, file);
+  }
 });
 
-ipcMain.on('image-title-text-added', async (event, arg) => {
-  fs.writeFileSync('/home/adrian/Desktop/SimBumContent/title.txt', arg[0]);
+ipcMain.on('image-title-text-added', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentName = args[1];
+    const contentPath = createPathToContent(rootPath, contentName);
+    createPathIfNotExists(contentPath);
+    const value = args[2];
+    fs.writeFileSync(`${contentPath}/title.txt`, value);
+  }
 });
 
-ipcMain.on('image-description-text-added', async (event, arg) => {
-  fs.writeFileSync(
-    '/home/adrian/Desktop/SimBumContent/description.txt',
-    arg[0]
-  );
+ipcMain.on('image-description-text-added', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentName = args[1];
+    const contentPath = createPathToContent(rootPath, contentName);
+    createPathIfNotExists(contentPath);
+    const value = args[2];
+    fs.writeFileSync(`${contentPath}/description.txt`, value);
+  }
 });
 
-ipcMain.on('settings-select-path', async (event, arg) => {
+ipcMain.on('settings-select-path', async (event, args) => {
   if (mainWindow) {
-    const promise = await dialog.showOpenDialog(mainWindow, {
-      properties: ['openDirectory'],
-    });
-
-    const a = 1;
+    const dirPathReturnValue: Electron.OpenDialogReturnValue =
+      await dialog.showOpenDialog(mainWindow, {
+        properties: ['openDirectory'],
+      });
+    store.set('dataPath', dirPathReturnValue.filePaths[0]);
   }
 });
 

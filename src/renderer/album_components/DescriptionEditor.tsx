@@ -2,13 +2,17 @@ import { useState, useEffect } from 'react';
 import ReactQuill from 'react-quill';
 
 function DescriptionEditor() {
-  const [value, setValue] = useState('');
+  const [id, setId] = useState('123');
+  const [name, setName] = useState('0');
+  const [text, setText] = useState('');
 
   useEffect(() => {
     window.electron.ipcRenderer.sendMessage('image-description-text-added', [
-      value,
+      id,
+      name,
+      text,
     ]);
-  }, [value]);
+  }, [id, name, text]);
 
   const modules = {
     toolbar: false,
@@ -22,8 +26,8 @@ function DescriptionEditor() {
       <div className="album-image-description-scrollbar">
         <ReactQuill
           theme="snow"
-          value={value}
-          onChange={setValue}
+          value={text}
+          onChange={setText}
           modules={modules}
           className="album-image-description-content"
         />

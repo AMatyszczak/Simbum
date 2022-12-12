@@ -5,13 +5,19 @@ import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
 
 function ImageViewer() {
+  const [id, setId] = useState('123');
+  const [name, setName] = useState('0');
   const [imagePath, setImagePath] = useState('');
 
   const handleDrop = (e: any) => {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       setImagePath(`file://${file.path}`);
-      window.electron.ipcRenderer.sendMessage('image-added', [file.path]);
+      window.electron.ipcRenderer.sendMessage('image-added', [
+        id,
+        name,
+        file.path,
+      ]);
     }
     e.preventDefault();
     e.stopPropagation();

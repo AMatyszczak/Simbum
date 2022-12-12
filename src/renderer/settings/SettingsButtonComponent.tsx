@@ -1,6 +1,4 @@
-import { BrowserWindow } from 'electron';
-import { useEffect } from 'react';
-import { HashRouter, Link, Route } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import settings_icon from '../../../assets/icons/settings.svg';
 
 function SettingsButtonComponent() {
