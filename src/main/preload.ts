@@ -2,9 +2,10 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels =
   | 'ipc-example'
-  | 'image-title-text-added'
-  | 'image-description-text-added'
-  | 'image-added'
+  | 'image-title-text-changed'
+  | 'image-description-text-changed'
+  | 'image-changed'
+  | 'new-page-added'
   | 'settings-select-path';
 
 contextBridge.exposeInMainWorld('electron', {
@@ -23,6 +24,14 @@ contextBridge.exposeInMainWorld('electron', {
     },
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
+    },
+  },
+  store: {
+    get(key: string) {
+      return ipcRenderer.sendSync('electron-store-get', key);
+    },
+    set(property: string, val: unknown) {
+      ipcRenderer.send('electron-store-set', property, val);
     },
   },
 });

@@ -1,62 +1,80 @@
-import { useState } from 'react';
 import button_right from '../../../assets/buttons/button_right.png';
 import button_left from '../../../assets/buttons/button_left.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
+import { PageIdProps } from './PageIdProps';
+import React from 'react';
 
-function ImageViewer() {
-  const [id, setId] = useState('123');
-  const [name, setName] = useState('0');
-  const [imagePath, setImagePath] = useState('');
+interface ImageViewerState {
+  pageId: string;
+  name: string;
+  imagePath: string;
+}
 
-  const handleDrop = (e: any) => {
+class ImageViewer extends React.Component<PageIdProps, ImageViewerState> {
+  constructor(props: PageIdProps) {
+    super(props);
+
+    this.state = {
+      pageId: props.pageId,
+      name: props.pageId,
+      imagePath: '',
+    };
+  }
+
+  handleDrop = (e: any) => {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
-      setImagePath(`file://${file.path}`);
-      window.electron.ipcRenderer.sendMessage('image-added', [
-        id,
-        name,
+      this.setState({ imagePath: `file://${file.path}` });
+      window.electron.ipcRenderer.sendMessage('image-changed', [
+        this.state.pageId,
+        this.state.name,
         file.path,
       ]);
     }
     e.preventDefault();
     e.stopPropagation();
   };
-  const handleDragOver = (e: any) => {
+  handleDragOver = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
   };
-  const handleDragEnter = (e: any) => {
+  handleDragEnter = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
   };
-  const handleDropLeave = (e: any) => {
+  handleDropLeave = (e: any) => {
     e.preventDefault();
     e.stopPropagation();
   };
 
-  return (
-    <div className="album-images-controller">
-      <button className="previous-album-image-button" type="button">
-        <img src={button_left} className="button-image" alt="" />
-      </button>
-      <div className="album-image-container" onDrop={(e) => handleDrop(e)}>
-        <img
-          draggable="false"
-          className="album-image"
-          src={imagePath || placeholder}
-          alt=""
-          onDrop={(e) => handleDrop(e)}
-          onDragOver={(e) => handleDragOver(e)}
-          onDragEnter={(e) => handleDragEnter(e)}
-          onDragLeave={(e) => handleDropLeave(e)}
-        />
+  render() {
+    return (
+      <div className="album-images-controller">
+        <button className="previous-album-image-button" type="button">
+          <img src={button_left} className="button-image" alt="" />
+        </button>
+        <div
+          className="album-image-container"
+          onDrop={(e) => this.handleDrop(e)}
+        >
+          <img
+            draggable="false"
+            className="album-image"
+            src={this.state.imagePath || placeholder}
+            alt=""
+            onDrop={(e) => this.handleDrop(e)}
+            onDragOver={(e) => this.handleDragOver(e)}
+            onDragEnter={(e) => this.handleDragEnter(e)}
+            onDragLeave={(e) => this.handleDropLeave(e)}
+          />
+        </div>
+        <button className="next-album-image-button" type="button">
+          <img src={button_right} className="button-image" alt="" />
+        </button>
       </div>
-      <button className="next-album-image-button" type="button">
-        <img src={button_right} className="button-image" alt="" />
-      </button>
-    </div>
-  );
+    );
+  }
 }
 
 export default ImageViewer;

@@ -29,7 +29,6 @@ const store = new Store<UserPreferences>({ schema });
 
 class AppUpdater {
   constructor() {
-    console.log('rootPath', store.get('rootPath'));
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
     autoUpdater.checkForUpdatesAndNotify();
@@ -54,7 +53,7 @@ function createPathToContent(rootPath: string, contentName: string) {
   return path.join(rootPath, contentName);
 }
 
-ipcMain.on('image-added', async (event, args) => {
+ipcMain.on('image-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const file = fs.readFileSync(args[2]);
@@ -65,7 +64,7 @@ ipcMain.on('image-added', async (event, args) => {
   }
 });
 
-ipcMain.on('image-title-text-added', async (event, args) => {
+ipcMain.on('image-title-text-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
@@ -76,7 +75,7 @@ ipcMain.on('image-title-text-added', async (event, args) => {
   }
 });
 
-ipcMain.on('image-description-text-added', async (event, args) => {
+ipcMain.on('image-description-text-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
@@ -85,6 +84,26 @@ ipcMain.on('image-description-text-added', async (event, args) => {
     const value = args[2];
     fs.writeFileSync(`${contentPath}/description.txt`, value);
   }
+});
+
+ipcMain.on('new-page-added', async (event, arg) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    fs.writeFileSync(
+      `${rootPath}/album_tree.json`,
+      JSON.stringify({
+        folder_name: arg[0],
+      })
+    );
+  }
+});
+
+ipcMain.on('electron-store-get', async (event, val) => {
+  event.returnValue = store.get(val);
+});
+
+ipcMain.on('electron-store-set', async (event, key, val) => {
+  store.set(key, val);
 });
 
 ipcMain.on('settings-select-path', async (event, args) => {
