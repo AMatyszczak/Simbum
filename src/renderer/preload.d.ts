@@ -11,6 +11,10 @@ declare global {
         ): (() => void) | undefined;
         once(channel: Channels, func: (...args: unknown[]) => void): void;
       };
+      store: {
+        get(key: string): any;
+        set(property: string, val: unknown): void;
+      };
       startDrag(fileName: any): void;
     };
   }

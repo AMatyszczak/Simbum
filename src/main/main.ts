@@ -18,11 +18,15 @@ import { resolveHtmlPath } from './util';
 
 interface UserPreferences {
   rootPath: string;
+  pagesList: string[];
 }
 
 const schema: Schema<UserPreferences> = {
   rootPath: {
     type: 'string',
+  },
+  pagesList: {
+    type: 'array',
   },
 };
 const store = new Store<UserPreferences>({ schema });
@@ -36,12 +40,6 @@ class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
-
-ipcMain.on('ipc-example', async (event, arg) => {
-  const msgTemplate = (pingPong: string) => `IPC test: ${pingPong}`;
-  console.log(msgTemplate(arg));
-  event.reply('ipc-example', msgTemplate('pong'));
-});
 
 function createPathIfNotExists(p: string) {
   if (!fs.existsSync(p)) {
@@ -98,6 +96,16 @@ ipcMain.on('new-page-added', async (event, arg) => {
   }
 });
 
+ipcMain.on('get-page-title', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentName = args[0];
+    const contentPath = createPathToContent(rootPath, contentName);
+    const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
+    event.reply('get-page-title', fileContent.toString());
+  }
+});
+
 ipcMain.on('electron-store-get', async (event, val) => {
   event.returnValue = store.get(val);
 });
@@ -113,6 +121,7 @@ ipcMain.on('settings-select-path', async (event, args) => {
         properties: ['openDirectory'],
       });
     store.set('dataPath', dirPathReturnValue.filePaths[0]);
+    loadFileTree();
   }
 });
 
@@ -139,6 +148,14 @@ const installExtensions = async () => {
       forceDownload
     )
     .catch(console.log);
+};
+
+const loadFileTree = async () => {
+  const dataPath: string = store.get('dataPath');
+  if (dataPath != null) {
+    const files = fs.readdirSync(dataPath, {});
+    store.set('pagesList', files);
+  }
 };
 
 const createWindow = async () => {
@@ -198,6 +215,7 @@ const createWindow = async () => {
   // Remove this if your app does not use auto updates
   // eslint-disable-next-line
   new AppUpdater();
+  loadFileTree();
 };
 
 /**

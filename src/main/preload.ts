@@ -1,12 +1,15 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels =
-  | 'ipc-example'
   | 'image-title-text-changed'
   | 'image-description-text-changed'
   | 'image-changed'
   | 'new-page-added'
-  | 'settings-select-path';
+  | 'settings-select-path'
+  | 'electron-store-get'
+  | 'get-page-title'
+  | 'get-page-description'
+  | 'get-page-image';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {

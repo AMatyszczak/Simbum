@@ -4,6 +4,7 @@ import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
 import { PageIdProps } from './PageIdProps';
 import React from 'react';
+import { ImageViewerProps } from './ImageViewerProps';
 
 interface ImageViewerState {
   pageId: string;
@@ -11,8 +12,8 @@ interface ImageViewerState {
   imagePath: string;
 }
 
-class ImageViewer extends React.Component<PageIdProps, ImageViewerState> {
-  constructor(props: PageIdProps) {
+class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
+  constructor(props: ImageViewerProps) {
     super(props);
 
     this.state = {
@@ -52,7 +53,12 @@ class ImageViewer extends React.Component<PageIdProps, ImageViewerState> {
     return (
       <div className="album-images-controller">
         <button className="previous-album-image-button" type="button">
-          <img src={button_left} className="button-image" alt="" />
+          <img
+            src={button_left}
+            className="button-image"
+            alt=""
+            onClick={this.props.onPrevPageClick}
+          />
         </button>
         <div
           className="album-image-container"
@@ -70,7 +76,12 @@ class ImageViewer extends React.Component<PageIdProps, ImageViewerState> {
           />
         </div>
         <button className="next-album-image-button" type="button">
-          <img src={button_right} className="button-image" alt="" />
+          <img
+            src={button_right}
+            className="button-image"
+            alt=""
+            onClick={this.props.onNextPageClick}
+          />
         </button>
       </div>
     );

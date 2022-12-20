@@ -10,7 +10,6 @@ interface TitleState {
 class TitleEditor extends React.Component<PageIdProps, TitleState> {
   constructor(props: PageIdProps) {
     super(props);
-
     this.state = {
       pageId: props.pageId,
       name: props.pageId,
@@ -18,15 +17,24 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
     };
   }
 
-  componentDidMount() {
-    console.log('mount');
+  componentDidUpdate(prevProps: PageIdProps) {
+    if (prevProps.pageId != this.props.pageId) {
+      window.electron.ipcRenderer.sendMessage('get-page-title', [
+        this.props.pageId,
+      ]);
+      window.electron.ipcRenderer.once('get-page-title', (arg: any) => {
+        this.setState({ text: arg });
+      });
+    }
   }
 
-  componentDidUpdate() {
+  onTextChanged(event: any) {
+    const eventText = event.target.value;
+    this.setState({ text: eventText });
     window.electron.ipcRenderer.sendMessage('image-title-text-changed', [
-      this.state.pageId,
-      this.state.name,
-      this.state.text,
+      this.props.pageId,
+      this.props.pageId,
+      eventText,
     ]);
   }
 
@@ -37,7 +45,7 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
         type="text"
         spellCheck="false"
         value={this.state.text}
-        onChange={(e) => this.setState({ text: e.target.value })}
+        onChange={(e) => this.onTextChanged(e)}
       />
     );
   }
