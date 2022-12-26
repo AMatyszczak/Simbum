@@ -10,7 +10,7 @@ function SettingsComponent() {
   return (
     <>
       <button type="button" className="return-button">
-        <Link to="/">
+        <Link to="/album">
           <img src={arrow_left} className="return-button-icon" alt="" />
         </Link>
       </button>

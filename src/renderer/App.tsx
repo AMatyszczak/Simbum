@@ -3,72 +3,38 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 // import button_right_disabled from '../../assets/buttons/button_right_disabled.png'
 import './App.css';
 import 'react-quill/dist/quill.snow.css';
-import DescriptionEditor from './album_components/DescriptionEditor';
-import TitleEditor from './album_components/TitleEditor';
-import ImageViewer from './album_components/ImageViewer';
-import SettingsButtonComponent from './settings/SettingsButtonComponent';
 import SettingsComponent from './settings/SettingsComponent';
 import React from 'react';
+import AlbumComponent from './album_components/AlbumComponent';
+import LoadingComponent from './loading_component/LoadingComponent';
 
-interface SimBumState {
-  pagesList: string[];
-  pageId: string;
+interface SimbumState {
+  isComponentMounted: boolean;
+  isDataPath: boolean;
 }
-
-class Simbum extends React.Component<any, SimBumState> {
+class Simbum extends React.Component<any, SimbumState> {
+  
   constructor(props: any) {
     super(props);
     this.state = {
-      pagesList: [],
-      pageId: '0',
+      isComponentMounted: false,
+      isDataPath: false
     };
-
-    this.onNextPageClick = this.onNextPageClick.bind(this);
-    this.onPrevPageClick = this.onPrevPageClick.bind(this);
   }
 
-  componentDidUpdate() {}
-
-  componentDidMount() {
-    this.loadFileList();
-    this.loadFirstPage();
-  }
-
-  loadFileList() {
-    this.setState({ pagesList: window.electron.store.get('pagesList') }, () => {
-      this.loadFirstPage();
-    });
-  }
-
-  loadFirstPage() {
-    this.setState({ pageId: this.state.pagesList[0] });
-  }
-
-  onNextPageClick() {
-    const nextPage = parseInt(this.state.pageId) + 1;
-    this.setState({ pageId: nextPage.toString() });
-  }
-
-  onPrevPageClick() {
-    const prevPage = parseInt(this.state.pageId) - 1;
-    this.setState({ pageId: prevPage.toString() });
+  componentDidMount(): void {
+    const isDataPath = window.electron.store.get('dataPath') != null;
+    this.setState({'isComponentMounted': true, 'isDataPath': isDataPath})
   }
 
   render() {
-    return (
-      <>
-        <SettingsButtonComponent />
-        <div className="album-content">
-          <TitleEditor pageId={this.state.pageId} />
-          <ImageViewer
-            pageId={this.state.pageId}
-            onNextPageClick={this.onNextPageClick}
-            onPrevPageClick={this.onPrevPageClick}
-          />
-          <DescriptionEditor pageId={this.state.pageId} />
-        </div>
-      </>
-    );
+    if (!this.state.isComponentMounted) {
+      return (<LoadingComponent/>)
+    }
+    if(!this.state.isDataPath){
+      return (<SettingsComponent/>)
+    }
+    return (<AlbumComponent/>)  
   }
 }
 
@@ -77,6 +43,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Simbum />} />
+        <Route path="/album" element={<AlbumComponent />} />
         <Route path="/settings" element={<SettingsComponent />} />
       </Routes>
     </Router>
