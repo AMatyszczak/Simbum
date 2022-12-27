@@ -1,5 +1,3 @@
-// import button_left_disabled from '../../assets/buttons/button_left_disabled.png'
-// import button_right_disabled from '../../assets/buttons/button_right_disabled.png'
 import '../App.css';
 import 'react-quill/dist/quill.snow.css';
 import DescriptionEditor from '../album_components/DescriptionEditor';
@@ -10,14 +8,19 @@ import React from 'react';
 
 interface AlbumComponentState {
   pagesList: string[];
+  pageNo: number;
   pageId: string;
 }
 
-export default class AlbumComponent extends React.Component<any, AlbumComponentState> {
+export default class AlbumComponent extends React.Component<
+  any,
+  AlbumComponentState
+> {
   constructor(props: any) {
     super(props);
     this.state = {
       pagesList: [],
+      pageNo: 0,
       pageId: '0',
     };
 
@@ -32,7 +35,7 @@ export default class AlbumComponent extends React.Component<any, AlbumComponentS
   loadFileList() {
     const storedPages = window.electron.store.get('pagesList');
     if (storedPages == null) {
-      console.log("storedPages are null")
+      console.log('storedPages are null');
     } else {
       this.setState({ pagesList: storedPages }, () => {
         this.loadFirstPage();
@@ -41,18 +44,22 @@ export default class AlbumComponent extends React.Component<any, AlbumComponentS
   }
 
   loadFirstPage() {
-    console.log("this.state.pagesList", this.state.pagesList)
-    this.setState({ pageId: this.state.pagesList[0] });
+    this.setState({ pageId: this.state.pagesList[this.state.pageNo] });
   }
 
   onNextPageClick() {
-    const nextPage = parseInt(this.state.pageId) + 1;
-    this.setState({ pageId: nextPage.toString() });
+    this.moveToPage(this.state.pageNo + 1);
   }
 
   onPrevPageClick() {
-    const prevPage = parseInt(this.state.pageId) - 1;
-    this.setState({ pageId: prevPage.toString() });
+    this.moveToPage(this.state.pageNo - 1);
+  }
+
+  moveToPage(pageNo: number) {
+    this.setState({
+      pageId: this.state.pagesList[pageNo],
+      pageNo: pageNo,
+    });
   }
 
   render() {
@@ -62,6 +69,7 @@ export default class AlbumComponent extends React.Component<any, AlbumComponentS
         <div className="album-content">
           <TitleEditor pageId={this.state.pageId} />
           <ImageViewer
+            pagesList={this.state.pagesList}
             pageId={this.state.pageId}
             onNextPageClick={this.onNextPageClick}
             onPrevPageClick={this.onPrevPageClick}

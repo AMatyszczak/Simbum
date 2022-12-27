@@ -19,12 +19,24 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
     };
   }
 
-  componentDidUpdate() {
+  onTextChanged(text: any) {
+    this.setState({ text: text });
     window.electron.ipcRenderer.sendMessage('image-description-text-changed', [
-      this.state.pageId,
-      this.state.name,
-      this.state.text,
+      this.props.pageId,
+      this.props.pageId,
+      text,
     ]);
+  }
+
+  componentDidUpdate(prevProps: PageIdProps) {
+    if (prevProps.pageId != this.props.pageId) {
+      window.electron.ipcRenderer.once('get-page-description', (arg: any) => {
+        this.setState({ text: arg });
+      });
+      window.electron.ipcRenderer.sendMessage('get-page-description', [
+        this.props.pageId,
+      ]);
+    }
   }
 
   modules = {
@@ -41,7 +53,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
           <ReactQuill
             theme="snow"
             value={this.state.text}
-            onChange={(v) => this.setState({ text: v })}
+            onChange={(v) => this.onTextChanged(v)}
             modules={this.modules}
             className="album-image-description-content"
           />

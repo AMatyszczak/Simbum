@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { PageIdProps } from './PageIdProps';
 
 interface TitleState {
-  pageId: string;
   name: string;
   text: string;
 }
@@ -11,7 +10,6 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
   constructor(props: PageIdProps) {
     super(props);
     this.state = {
-      pageId: props.pageId,
       name: props.pageId,
       text: 'Przyjaciele',
     };
@@ -19,12 +17,12 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
 
   componentDidUpdate(prevProps: PageIdProps) {
     if (prevProps.pageId != this.props.pageId) {
-      window.electron.ipcRenderer.sendMessage('get-page-title', [
-        this.props.pageId,
-      ]);
       window.electron.ipcRenderer.once('get-page-title', (arg: any) => {
         this.setState({ text: arg });
       });
+      window.electron.ipcRenderer.sendMessage('get-page-title', [
+        this.props.pageId,
+      ]);
     }
   }
 

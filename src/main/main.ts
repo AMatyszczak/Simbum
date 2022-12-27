@@ -106,6 +106,16 @@ ipcMain.on('get-page-title', async (event, args) => {
   }
 });
 
+ipcMain.on('get-page-description', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentName = args[0];
+    const contentPath = createPathToContent(rootPath, contentName);
+    const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
+    event.reply('get-page-description', fileContent.toString());
+  }
+});
+
 ipcMain.on('electron-store-get', async (event, val) => {
   event.returnValue = store.get(val);
 });

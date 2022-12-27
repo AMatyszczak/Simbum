@@ -1,13 +1,21 @@
 import button_right from '../../../assets/buttons/button_right.png';
 import button_left from '../../../assets/buttons/button_left.png';
+import button_right_disabled from '../../../assets/buttons/button_right_disabled.png';
+import button_left_disabled from '../../../assets/buttons/button_left_disabled.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
 import { PageIdProps } from './PageIdProps';
 import React from 'react';
-import { ImageViewerProps } from './ImageViewerProps';
+
+interface ImageViewerProps {
+  pagesList: string[];
+  pageId: string;
+  onNextPageClick: any;
+  onPrevPageClick: any;
+}
 
 interface ImageViewerState {
-  pageId: string;
+  pagesList: string[];
   name: string;
   imagePath: string;
 }
@@ -17,7 +25,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     super(props);
 
     this.state = {
-      pageId: props.pageId,
+      pagesList: props.pagesList,
       name: props.pageId,
       imagePath: '',
     };
@@ -28,7 +36,6 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     if (file.type.includes('image/')) {
       this.setState({ imagePath: `file://${file.path}` });
       window.electron.ipcRenderer.sendMessage('image-changed', [
-        this.state.pageId,
         this.state.name,
         file.path,
       ]);
@@ -49,12 +56,28 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     e.stopPropagation();
   };
 
+  shouldDisableNextButton(pageId: string) {
+    return pageId === this.state.pagesList[this.state.pagesList.length - 1];
+  }
+
+  shouldDisablePrevButton(pageId: string) {
+    return pageId === this.state.pagesList[0];
+  }
+
   render() {
     return (
       <div className="album-images-controller">
-        <button className="previous-album-image-button" type="button">
+        <button
+          className="previous-album-image-button"
+          type="button"
+          disabled={this.shouldDisablePrevButton(this.props.pageId)}
+        >
           <img
-            src={button_left}
+            src={
+              this.shouldDisablePrevButton(this.props.pageId)
+                ? button_left_disabled
+                : button_left
+            }
             className="button-image"
             alt=""
             onClick={this.props.onPrevPageClick}
@@ -75,9 +98,17 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
             onDragLeave={(e) => this.handleDropLeave(e)}
           />
         </div>
-        <button className="next-album-image-button" type="button">
+        <button
+          className="next-album-image-button"
+          type="button"
+          disabled={this.shouldDisableNextButton(this.props.pageId)}
+        >
           <img
-            src={button_right}
+            src={
+              this.shouldDisableNextButton(this.props.pageId)
+                ? button_right_disabled
+                : button_right
+            }
             className="button-image"
             alt=""
             onClick={this.props.onNextPageClick}
