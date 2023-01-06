@@ -21,21 +21,20 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
 
   onTextChanged(text: any) {
     this.setState({ text: text });
-    window.electron.ipcRenderer.sendMessage('image-description-text-changed', [
+    window.electron.ipcRenderer.sendMessage('page-description-changed', [
       this.props.pageId,
       this.props.pageId,
       text,
     ]);
   }
 
+  componentDidMount() {
+    this.loadData();
+  }
+
   componentDidUpdate(prevProps: PageIdProps) {
     if (prevProps.pageId != this.props.pageId) {
-      window.electron.ipcRenderer.once('get-page-description', (arg: any) => {
-        this.setState({ text: arg });
-      });
-      window.electron.ipcRenderer.sendMessage('get-page-description', [
-        this.props.pageId,
-      ]);
+      this.loadData();
     }
   }
 
@@ -60,6 +59,15 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
         </div>
       </div>
     );
+  }
+
+  private loadData() {
+    window.electron.ipcRenderer.once('get-page-description', (arg: any) => {
+      this.setState({ text: arg });
+    });
+    window.electron.ipcRenderer.sendMessage('get-page-description', [
+      this.props.pageId,
+    ]);
   }
 }
 

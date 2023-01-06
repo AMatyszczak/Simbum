@@ -1,10 +1,10 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels =
-  | 'image-title-text-changed'
-  | 'image-description-text-changed'
+  | 'page-title-changed'
+  | 'page-description-changed'
   | 'page-image-changed'
-  | 'new-page-added'
+  | 'page-created'
   | 'settings-select-path'
   | 'electron-store-get'
   | 'get-page-title'

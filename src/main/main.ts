@@ -62,7 +62,7 @@ ipcMain.on('page-image-changed', async (event, args) => {
   }
 });
 
-ipcMain.on('image-title-text-changed', async (event, args) => {
+ipcMain.on('page-title-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
@@ -73,7 +73,7 @@ ipcMain.on('image-title-text-changed', async (event, args) => {
   }
 });
 
-ipcMain.on('image-description-text-changed', async (event, args) => {
+ipcMain.on('page-description-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
@@ -84,15 +84,22 @@ ipcMain.on('image-description-text-changed', async (event, args) => {
   }
 });
 
-ipcMain.on('new-page-added', async (event, arg) => {
+ipcMain.on('page-created', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    fs.writeFileSync(
-      `${rootPath}/album_tree.json`,
-      JSON.stringify({
-        folder_name: arg[0],
-      })
-    );
+    const pagesList = store.get('pagesList');
+    const newPageNo = arg[0].toString();
+
+    pagesList.push(newPageNo);
+    const contentPath = createPathToContent(rootPath, newPageNo);
+
+    createPathIfNotExists(contentPath);
+
+    store.set('pagesList', pagesList);
+    fs.writeFileSync(`${contentPath}/title.txt`, '');
+    fs.writeFileSync(`${contentPath}/description.txt`, '');
+
+    event.reply('page-created', newPageNo);
   }
 });
 
@@ -100,6 +107,7 @@ ipcMain.on('get-page-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
+
     const contentPath = createPathToContent(rootPath, contentName);
     const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
     event.reply('get-page-title', fileContent.toString());
@@ -110,6 +118,7 @@ ipcMain.on('get-page-description', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
+
     const contentPath = createPathToContent(rootPath, contentName);
     const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
     event.reply('get-page-description', fileContent.toString());

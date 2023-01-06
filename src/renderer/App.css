@@ -64,30 +64,28 @@ body {
   margin-top: 1rem;
 }
 
-.album-content .album-images-controller button.previous-album-image-button {
+.album-content .album-images-controller button.next-album-image-button {
   background: transparent;
   border: unset;
 }
 
-.album-content
-  .album-images-controller
-  button.previous-album-image-button:disabled {
-  border: #1452ae;
-  cursor: not-allowed;
-  pointer-events: none;
+.album-content .album-images-controller button.prev-album-image-button {
+  background: transparent;
+  border: unset;
 }
 
 .album-content
   .album-images-controller
   button.next-album-image-button:disabled {
   border: #1452ae;
-  cursor: not-allowed;
-  pointer-events: none;
+  /* pointer-events: none; */
 }
 
-.album-content .album-images-controller button.next-album-image-button {
-  background: transparent;
-  border: unset;
+.album-content
+  .album-images-controller
+  button.prev-album-image-button:disabled {
+  border: #1452ae;
+  pointer-events: none;
 }
 
 .album-image-container {

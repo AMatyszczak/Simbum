@@ -13,28 +13,30 @@ interface SimbumState {
   isDataPath: boolean;
 }
 class Simbum extends React.Component<any, SimbumState> {
-  
   constructor(props: any) {
     super(props);
     this.state = {
       isComponentMounted: false,
-      isDataPath: false
+      isDataPath: false,
     };
   }
 
   componentDidMount(): void {
     const isDataPath = window.electron.store.get('dataPath') != null;
-    this.setState({'isComponentMounted': true, 'isDataPath': isDataPath})
+    console.log('isDataPath', isDataPath);
+    this.setState({ isComponentMounted: true, isDataPath: isDataPath });
   }
 
   render() {
     if (!this.state.isComponentMounted) {
-      return (<LoadingComponent/>)
+      console.log('render LoadingComponent');
+      return <LoadingComponent />;
     }
-    if(!this.state.isDataPath){
-      return (<SettingsComponent/>)
+    if (!this.state.isDataPath) {
+      return <SettingsComponent />;
     }
-    return (<AlbumComponent/>)  
+    console.log('render AlbumComponent');
+    return <AlbumComponent />;
   }
 }
 

@@ -27,14 +27,13 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     };
   }
 
+  componentDidMount() {
+    this.loadData();
+  }
+
   componentDidUpdate(prevProps: PageIdProps) {
     if (prevProps.pageId != this.props.pageId) {
-      window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
-        this.setState({ imagePath: arg ? arg : '' });
-      });
-      window.electron.ipcRenderer.sendMessage('get-page-image', [
-        this.props.pageId,
-      ]);
+      this.loadData();
     }
   }
 
@@ -64,31 +63,34 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     e.stopPropagation();
   };
 
-  shouldDisableNextButton(pageId: string) {
-    return pageId === this.props.pagesList[this.props.pagesList.length - 1];
-  }
-
   shouldDisablePrevButton(pageId: string) {
     return pageId === this.props.pagesList[0];
+  }
+
+  shouldDisableNextButton(pageId: string) {
+    return (
+      pageId == null ||
+      pageId === this.props.pagesList[this.props.pagesList.length - 1]
+    );
   }
 
   render() {
     return (
       <div className="album-images-controller">
         <button
-          className="previous-album-image-button"
+          className="next-album-image-button"
           type="button"
-          disabled={this.shouldDisablePrevButton(this.props.pageId)}
+          disabled={this.shouldDisableNextButton(this.props.pageId)}
         >
           <img
             src={
-              this.shouldDisablePrevButton(this.props.pageId)
+              this.shouldDisableNextButton(this.props.pageId)
                 ? button_left_disabled
                 : button_left
             }
             className="button-image"
             alt=""
-            onClick={this.props.onPrevPageClick}
+            onClick={this.props.onNextPageClick}
           />
         </button>
         <div
@@ -107,23 +109,32 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
           />
         </div>
         <button
-          className="next-album-image-button"
+          className="prev-album-image-button"
           type="button"
-          disabled={this.shouldDisableNextButton(this.props.pageId)}
+          disabled={this.shouldDisablePrevButton(this.props.pageId)}
         >
           <img
             src={
-              this.shouldDisableNextButton(this.props.pageId)
+              this.shouldDisablePrevButton(this.props.pageId)
                 ? button_right_disabled
                 : button_right
             }
             className="button-image"
             alt=""
-            onClick={this.props.onNextPageClick}
+            onClick={this.props.onPrevPageClick}
           />
         </button>
       </div>
     );
+  }
+
+  private loadData() {
+    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+      this.setState({ imagePath: arg ? arg : '' });
+    });
+    window.electron.ipcRenderer.sendMessage('get-page-image', [
+      this.props.pageId,
+    ]);
   }
 }
 
