@@ -51,7 +51,7 @@ function createPathToContent(rootPath: string, contentName: string) {
   return path.join(rootPath, contentName);
 }
 
-ipcMain.on('image-changed', async (event, args) => {
+ipcMain.on('page-image-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const file = fs.readFileSync(args[2]);
@@ -113,6 +113,19 @@ ipcMain.on('get-page-description', async (event, args) => {
     const contentPath = createPathToContent(rootPath, contentName);
     const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
     event.reply('get-page-description', fileContent.toString());
+  }
+});
+
+ipcMain.on('get-page-image', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentName = args[0];
+    const contentPath = createPathToContent(rootPath, contentName);
+    const fileExists = fs.existsSync(`${contentPath}/img.png`);
+    event.reply(
+      'get-page-image',
+      fileExists ? `file://${contentPath}/img.png` : null
+    );
   }
 });
 

@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 export type Channels =
   | 'image-title-text-changed'
   | 'image-description-text-changed'
-  | 'image-changed'
+  | 'page-image-changed'
   | 'new-page-added'
   | 'settings-select-path'
   | 'electron-store-get'

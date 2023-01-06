@@ -15,8 +15,6 @@ interface ImageViewerProps {
 }
 
 interface ImageViewerState {
-  pagesList: string[];
-  name: string;
   imagePath: string;
 }
 
@@ -25,18 +23,28 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     super(props);
 
     this.state = {
-      pagesList: props.pagesList,
-      name: props.pageId,
       imagePath: '',
     };
+  }
+
+  componentDidUpdate(prevProps: PageIdProps) {
+    if (prevProps.pageId != this.props.pageId) {
+      window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+        this.setState({ imagePath: arg ? arg : '' });
+      });
+      window.electron.ipcRenderer.sendMessage('get-page-image', [
+        this.props.pageId,
+      ]);
+    }
   }
 
   handleDrop = (e: any) => {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       this.setState({ imagePath: `file://${file.path}` });
-      window.electron.ipcRenderer.sendMessage('image-changed', [
-        this.state.name,
+      window.electron.ipcRenderer.sendMessage('page-image-changed', [
+        this.props.pageId,
+        this.props.pageId,
         file.path,
       ]);
     }
@@ -57,11 +65,11 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
   };
 
   shouldDisableNextButton(pageId: string) {
-    return pageId === this.state.pagesList[this.state.pagesList.length - 1];
+    return pageId === this.props.pagesList[this.props.pagesList.length - 1];
   }
 
   shouldDisablePrevButton(pageId: string) {
-    return pageId === this.state.pagesList[0];
+    return pageId === this.props.pagesList[0];
   }
 
   render() {
