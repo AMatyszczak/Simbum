@@ -73,7 +73,6 @@ export default class AlbumComponent extends React.Component<
 
   createNewPage(pageNo: number) {
     window.electron.ipcRenderer.once('page-created', (arg: any) => {
-      console.log('createNewPage', arg);
       this.state.pagesList.push(arg);
       this.setState({ pageId: this.state.pagesList[pageNo], pageNo: pageNo });
     });

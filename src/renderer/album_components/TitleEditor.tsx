@@ -9,7 +9,6 @@ interface TitleState {
 class TitleEditor extends React.Component<PageIdProps, TitleState> {
   constructor(props: PageIdProps) {
     super(props);
-    console.log('TitleEditor const');
     this.state = {
       name: props.pageId,
       text: 'Przyjaciele',
