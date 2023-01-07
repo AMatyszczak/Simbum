@@ -50,10 +50,7 @@ export default class AlbumComponent extends React.Component<
   }
 
   onNextPageClick() {
-    if (
-      this.state.pageId ===
-      this.state.pagesList[this.state.pagesList.length - 1]
-    ) {
+    if (this.checkIfLastPage(this.state.pageId, this.state.pagesList)) {
       this.createNewPage(this.state.pageNo + 1);
     } else {
       this.moveToPage(this.state.pageNo + 1);
@@ -77,6 +74,10 @@ export default class AlbumComponent extends React.Component<
       this.setState({ pageId: this.state.pagesList[pageNo], pageNo: pageNo });
     });
     window.electron.ipcRenderer.sendMessage('page-created', [pageNo]);
+  }
+
+  private checkIfLastPage(pageId: string, pagesList: string[]) {
+    return pageId === pagesList[pagesList.length - 1];
   }
 
   render() {

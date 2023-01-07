@@ -2,6 +2,7 @@ import button_right from '../../../assets/buttons/button_right.png';
 import button_left from '../../../assets/buttons/button_left.png';
 import button_right_disabled from '../../../assets/buttons/button_right_disabled.png';
 import button_left_disabled from '../../../assets/buttons/button_left_disabled.png';
+import button_left_create_page from '../../../assets/buttons/button_left_disabled.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
 import { PageIdProps } from './PageIdProps';
@@ -64,14 +65,43 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
   };
 
   shouldDisablePrevButton(pageId: string) {
-    return pageId === this.props.pagesList[0];
+    return this.checkIfFirstPage(pageId, this.props.pagesList);
   }
 
   shouldDisableNextButton(pageId: string) {
-    return (
-      pageId == null ||
-      pageId === this.props.pagesList[this.props.pagesList.length - 1]
-    );
+    return pageId == null || !this.checkIfImageSet(this.state.imagePath);
+  }
+
+  private checkIfLastPage(pageId: string, pagesList: string[]) {
+    return pageId === pagesList[pagesList.length - 1];
+  }
+
+  private checkIfFirstPage(pageId: string, pagesList: string[]) {
+    return pageId === pagesList[0];
+  }
+
+  private loadData() {
+    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+      this.setState({ imagePath: arg ? arg : '' });
+    });
+    window.electron.ipcRenderer.sendMessage('get-page-image', [
+      this.props.pageId,
+    ]);
+  }
+
+  private checkIfImageSet(imagePath: string) {
+    return imagePath != null && imagePath != '';
+  }
+
+  private determineButtonImg() {
+    if (this.checkIfLastPage(this.props.pageId, this.props.pagesList)) {
+      return button_left_create_page;
+    }
+    if (this.shouldDisableNextButton(this.props.pageId)) {
+      return button_left_disabled;
+    }
+
+    return button_left;
   }
 
   render() {
@@ -83,11 +113,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
           disabled={this.shouldDisableNextButton(this.props.pageId)}
         >
           <img
-            src={
-              this.shouldDisableNextButton(this.props.pageId)
-                ? button_left_disabled
-                : button_left
-            }
+            src={this.determineButtonImg()}
             className="button-image"
             alt=""
             onClick={this.props.onNextPageClick}
@@ -126,15 +152,6 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
         </button>
       </div>
     );
-  }
-
-  private loadData() {
-    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
-      this.setState({ imagePath: arg ? arg : '' });
-    });
-    window.electron.ipcRenderer.sendMessage('get-page-image', [
-      this.props.pageId,
-    ]);
   }
 }
 

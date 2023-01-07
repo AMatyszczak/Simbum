@@ -78,7 +78,7 @@ body {
   .album-images-controller
   button.next-album-image-button:disabled {
   border: #1452ae;
-  /* pointer-events: none; */
+  pointer-events: none;
 }
 
 .album-content
