@@ -1,6 +1,4 @@
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-// import button_left_disabled from '../../assets/buttons/button_left_disabled.png'
-// import button_right_disabled from '../../assets/buttons/button_right_disabled.png'
 import './App.css';
 import 'react-quill/dist/quill.snow.css';
 import SettingsComponent from './settings/SettingsComponent';

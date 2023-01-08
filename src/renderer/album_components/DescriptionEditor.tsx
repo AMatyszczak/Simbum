@@ -15,7 +15,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
     this.state = {
       pageId: props.pageId,
       name: props.pageId,
-      text: 'opis',
+      text: '',
     };
   }
 

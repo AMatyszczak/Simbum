@@ -34,8 +34,9 @@ export default class AlbumComponent extends React.Component<
 
   loadFileList() {
     const storedPages = window.electron.store.get('pagesList');
-    if (storedPages == null) {
+    if (storedPages == null || storedPages.length === 0) {
       console.log('storedPages are null');
+      this.createNewPage(0);
     } else {
       this.setState({ pagesList: storedPages }, () => {
         this.loadFirstPage();

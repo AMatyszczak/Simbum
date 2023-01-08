@@ -11,7 +11,7 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
     super(props);
     this.state = {
       name: props.pageId,
-      text: 'Przyjaciele',
+      text: '',
     };
   }
 
