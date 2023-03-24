@@ -16,7 +16,8 @@ interface ImageViewerProps {
 }
 
 interface ImageViewerState {
-  imagePath: string;
+  currentImagePath: string;
+  nextImagePath: string;
 }
 
 class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
@@ -24,24 +25,25 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     super(props);
 
     this.state = {
-      imagePath: '',
+      currentImagePath: '',
+      nextImagePath: ''
     };
   }
 
   componentDidMount() {
-    this.loadData();
+    this.loadCurrentImagePath();
   }
 
   componentDidUpdate(prevProps: PageIdProps) {
     if (prevProps.pageId != this.props.pageId) {
-      this.loadData();
+      this.loadCurrentImagePath();
     }
   }
 
   handleDrop = (e: any) => {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
-      this.setState({ imagePath: `file://${file.path}` });
+      this.setState({ currentImagePath: `file://${file.path}` });
       window.electron.ipcRenderer.sendMessage('page-image-changed', [
         this.props.pageId,
         this.props.pageId,
@@ -69,7 +71,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
   }
 
   shouldDisableNextButton(pageId: string) {
-    return pageId == null || !this.checkIfImageSet(this.state.imagePath);
+    return pageId == null || !this.checkIfImageSet(this.state.currentImagePath)
   }
 
   private checkIfLastPage(pageId: string, pagesList: string[]) {
@@ -80,12 +82,24 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     return pageId === pagesList[0];
   }
 
-  private loadData() {
+  private loadCurrentImagePath() {
     window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
-      this.setState({ imagePath: arg ? arg : '' });
+      this.setState({ currentImagePath: arg ? arg : '' });
+      this.loadNextImagePath()
     });
     window.electron.ipcRenderer.sendMessage('get-page-image', [
       this.props.pageId,
+    ]);
+  }
+
+  private loadNextImagePath() {
+    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+      this.setState({ nextImagePath: arg ? arg : '' });
+    });
+
+    const index = this.props.pagesList.findIndex(page => page == this.props.pageId)
+    window.electron.ipcRenderer.sendMessage('get-page-image', [
+      this.props.pagesList[index + 1],
     ]);
   }
 
@@ -94,7 +108,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
   }
 
   private determineButtonImg() {
-    if (this.checkIfLastPage(this.props.pageId, this.props.pagesList)) {
+    if (this.checkIfLastPage(this.props.pageId, this.props.pagesList) || !this.checkIfImageSet(this.state.nextImagePath)) {
       return button_left_create_page;
     }
     if (this.shouldDisableNextButton(this.props.pageId)) {
@@ -126,7 +140,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
           <img
             draggable="false"
             className="album-image"
-            src={this.state.imagePath || placeholder}
+            src={this.state.currentImagePath || placeholder}
             alt=""
             onDrop={(e) => this.handleDrop(e)}
             onDragOver={(e) => this.handleDragOver(e)}

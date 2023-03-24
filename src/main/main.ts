@@ -107,10 +107,13 @@ ipcMain.on('get-page-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
-
-    const contentPath = createPathToContent(rootPath, contentName);
-    const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
-    event.reply('get-page-title', fileContent.toString());
+    if (contentName == null) {
+      event.reply('get-page-title',null);  
+    } else {
+      const contentPath = createPathToContent(rootPath, contentName);
+      const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
+      event.reply('get-page-title', fileContent.toString());
+    }
   }
 });
 
@@ -118,10 +121,13 @@ ipcMain.on('get-page-description', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
-
-    const contentPath = createPathToContent(rootPath, contentName);
-    const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
-    event.reply('get-page-description', fileContent.toString());
+    if (contentName == null) {
+      event.reply('get-page-description',null);  
+    } else {
+      const contentPath = createPathToContent(rootPath, contentName);
+      const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
+      event.reply('get-page-description', fileContent.toString());
+    }
   }
 });
 
@@ -129,12 +135,16 @@ ipcMain.on('get-page-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
-    const contentPath = createPathToContent(rootPath, contentName);
-    const fileExists = fs.existsSync(`${contentPath}/img.png`);
-    event.reply(
-      'get-page-image',
-      fileExists ? `file://${contentPath}/img.png` : null
-    );
+    if (contentName == null) {
+      event.reply('get-page-image',null);  
+    } else {
+      const contentPath = createPathToContent(rootPath, contentName);
+      const fileExists = fs.existsSync(`${contentPath}/img.png`);
+      event.reply(
+        'get-page-image',
+        fileExists ? `file://${contentPath}/img.png` : null
+      );
+    }
   }
 });
 
