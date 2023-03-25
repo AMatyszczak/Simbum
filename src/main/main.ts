@@ -148,6 +148,26 @@ ipcMain.on('get-page-image', async (event, args) => {
   }
 });
 
+ipcMain.on('get-pages-images', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const contentNames = args[0];
+    if (contentNames == null || Array.isArray(contentNames) === false || contentNames.length === 0) {
+      event.reply('get-pages-images', null);  
+    } else {
+      const pagesImagesPaths: string[] = []
+      for (let contentName of contentNames) {
+        const contentPath = createPathToContent(rootPath, contentName);
+        const fileExists = fs.existsSync(`${contentPath}/img.png`);
+        if (fileExists) {
+          pagesImagesPaths.push(`file://${contentPath}/img.png`)
+        }
+      }
+      event.reply('get-pages-images', pagesImagesPaths);
+    }
+  }
+});
+
 ipcMain.on('electron-store-get', async (event, val) => {
   event.returnValue = store.get(val);
 });

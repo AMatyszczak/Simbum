@@ -9,7 +9,8 @@ export type Channels =
   | 'electron-store-get'
   | 'get-page-title'
   | 'get-page-description'
-  | 'get-page-image';
+  | 'get-page-image'
+  | 'get-pages-images';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {

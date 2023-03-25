@@ -18,6 +18,7 @@ interface ImageViewerProps {
 interface ImageViewerState {
   currentImagePath: string;
   nextImagePath: string;
+  thumbnailsPaths: string[];
 }
 
 class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
@@ -26,17 +27,20 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
     this.state = {
       currentImagePath: '',
-      nextImagePath: ''
+      nextImagePath: '',
+      thumbnailsPaths: []
     };
   }
 
   componentDidMount() {
     this.loadCurrentImagePath();
+    this.loadImageThumbnails();
   }
 
   componentDidUpdate(prevProps: PageIdProps) {
     if (prevProps.pageId != this.props.pageId) {
       this.loadCurrentImagePath();
+      this.loadImageThumbnails();
     }
   }
 
@@ -72,6 +76,15 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
   shouldDisableNextButton(pageId: string) {
     return pageId == null || !this.checkIfImageSet(this.state.currentImagePath)
+  }
+
+  private loadImageThumbnails() {
+    window.electron.ipcRenderer.once('get-pages-images', (arg: any) => {
+      this.setState({ thumbnailsPaths: arg ? arg : [] });
+    });
+    window.electron.ipcRenderer.sendMessage('get-pages-images', [
+      this.props.pagesList,
+    ]);
   }
 
   private checkIfLastPage(pageId: string, pagesList: string[]) {
@@ -164,6 +177,11 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
             onClick={this.props.onPrevPageClick}
           />
         </button>
+        <div className='album-image-thumbnail-list'>
+          {this.state.thumbnailsPaths.map((imagePath, index) => (
+            <img src={imagePath} key={index} className="album-image-thumbnail" width="100px" height="100px"></img>
+          ))}
+        </div>
       </div>
     );
   }
