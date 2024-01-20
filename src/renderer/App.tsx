@@ -29,7 +29,7 @@ class Simbum extends React.Component<any, SimbumState> {
       return <LoadingComponent />;
     }
     if (!this.state.isDataPath) {
-      return <SettingsComponent />;
+      return <SettingsComponent isPathToUserFilesSet={this.state.isDataPath}/>;
     }
     return <AlbumComponent />;
   }
@@ -41,7 +41,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Simbum />} />
         <Route path="/album" element={<AlbumComponent />} />
-        <Route path="/settings" element={<SettingsComponent />} />
+        <Route path="/settings" element={<SettingsComponent isPathToUserFilesSet={false}/>} />
       </Routes>
     </Router>
   );

@@ -80,7 +80,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
   private loadImageThumbnails() {
     window.electron.ipcRenderer.once('get-pages-images', (arg: any) => {
-      this.setState({ thumbnailsPaths: arg ? arg : [] });
+      this.setState({ thumbnailsPaths: arg ? arg.reverse() : [] });
     });
     window.electron.ipcRenderer.sendMessage('get-pages-images', [
       this.props.pagesList,
@@ -133,55 +133,59 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
   render() {
     return (
-      <div className="album-images-controller">
-        <button
-          className="next-album-image-button"
-          type="button"
-          disabled={this.shouldDisableNextButton(this.props.pageId)}
-        >
-          <img
-            src={this.determineButtonImg()}
-            className="button-image"
-            alt=""
-            onClick={this.props.onNextPageClick}
-          />
-        </button>
-        <div
-          className="album-image-container"
-          onDrop={(e) => this.handleDrop(e)}
-        >
-          <img
-            draggable="false"
-            className="album-image"
-            src={this.state.currentImagePath || placeholder}
-            alt=""
+      <div className='image-viewer-view'>
+        <div className="album-images-controller">
+          <button
+            className="next-album-image-button"
+            type="button"
+            disabled={this.shouldDisableNextButton(this.props.pageId)}
+          >
+            <img
+              src={this.determineButtonImg()}
+              className="button-image"
+              alt=""
+              onClick={this.props.onNextPageClick}
+            />
+          </button>
+          <div
+            className="album-image-container"
             onDrop={(e) => this.handleDrop(e)}
-            onDragOver={(e) => this.handleDragOver(e)}
-            onDragEnter={(e) => this.handleDragEnter(e)}
-            onDragLeave={(e) => this.handleDropLeave(e)}
-          />
+          >
+            <img
+              draggable="false"
+              className="album-image"
+              src={this.state.currentImagePath || placeholder}
+              alt=""
+              onDrop={(e) => this.handleDrop(e)}
+              onDragOver={(e) => this.handleDragOver(e)}
+              onDragEnter={(e) => this.handleDragEnter(e)}
+              onDragLeave={(e) => this.handleDropLeave(e)}
+            />
+          </div>
+          <button
+            className="prev-album-image-button"
+            type="button"
+            disabled={this.shouldDisablePrevButton(this.props.pageId)}
+          >
+            <img
+              src={
+                this.shouldDisablePrevButton(this.props.pageId)
+                  ? button_right_disabled
+                  : button_right
+              }
+              className="button-image"
+              alt=""
+              onClick={this.props.onPrevPageClick}
+            />
+          </button>
         </div>
-        <button
-          className="prev-album-image-button"
-          type="button"
-          disabled={this.shouldDisablePrevButton(this.props.pageId)}
-        >
-          <img
-            src={
-              this.shouldDisablePrevButton(this.props.pageId)
-                ? button_right_disabled
-                : button_right
-            }
-            className="button-image"
-            alt=""
-            onClick={this.props.onPrevPageClick}
-          />
-        </button>
         <div className='album-image-thumbnail-list'>
-          {this.state.thumbnailsPaths.map((imagePath, index) => (
-            <img src={imagePath} key={index} className="album-image-thumbnail" width="100px" height="100px"></img>
-          ))}
-        </div>
+            {
+              this.state.thumbnailsPaths.map((imagePath, index) => (
+                <img src={imagePath} key={index} className="album-image-thumbnail" width="110px"></img>
+              ))
+            }
+          </div>
       </div>
     );
   }

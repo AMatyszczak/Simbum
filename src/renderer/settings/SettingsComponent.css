@@ -18,8 +18,11 @@
   height: 10em;
 }
 
-.return-button-icon {
-  /* width: 10em; */
-  /* height: 10em; */
-  /* height: 1rem; */
+.return-button-icon-gray {
+  opacity: 0.5;
+  filter: alpha(opacity=50);
+}
+
+.disabled {
+  pointer-events: none;
 }

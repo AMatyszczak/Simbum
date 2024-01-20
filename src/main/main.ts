@@ -182,7 +182,9 @@ ipcMain.on('settings-select-path', async (event, args) => {
       await dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory'],
       });
-    store.set('dataPath', dirPathReturnValue.filePaths[0]);
+    let path = dirPathReturnValue.filePaths[0];
+    store.set('dataPath', path);
+    event.reply('settings-select-path', path)
     loadFileTree();
   }
 });

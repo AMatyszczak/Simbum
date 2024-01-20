@@ -1,30 +1,73 @@
-import { Link } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import arrow_left from '../../../assets/icons/arrow_left.svg';
 import './SettingsComponent.css';
+import React from 'react';
 
-function SettingsComponent() {
-  function selectPath() {
+interface SettingsComponentState {
+  pathToUserFiles: string;
+  newPathSet: boolean;
+}
+
+interface SettingsComponentProps {
+  isPathToUserFilesSet: boolean;
+}
+
+
+class SettingsComponent extends React.Component<SettingsComponentProps, SettingsComponentState> {
+  constructor(props: SettingsComponentProps) {
+    super(props);
+    
+    this.state = {
+      pathToUserFiles: window.electron.store.get('dataPath'),
+      newPathSet: false,
+    };
+  }
+
+
+  selectPath = () => {
+    window.electron.ipcRenderer.once('settings-select-path', (arg: any) => {
+      this.setState({ pathToUserFiles: arg, newPathSet: true});
+    });
     window.electron.ipcRenderer.sendMessage('settings-select-path', []);
   }
 
-  return (
-    <>
-      <button type="button" className="return-button">
-        <Link to="/album">
-          <img src={arrow_left} className="return-button-icon" alt="" />
-        </Link>
-      </button>
-      <div className="settings-content">
-        <button
-          type="button"
-          onClick={selectPath}
-          className="select-data-source-path-button"
-        >
-          Wybierz folder
-        </button>
-      </div>
-    </>
-  );
+  isPathToDataSet() {
+    console.log(`isPathToDataSet: ${this.props.isPathToUserFilesSet || this.state.pathToUserFiles != null && this.state.pathToUserFiles.length !=0}`)
+    return this.props.isPathToUserFilesSet || this.state.pathToUserFiles
+  }
+
+  render() {
+      if(this.state.newPathSet) { return <Navigate to="/album"/> }
+        else {
+          return (
+            <>
+            <button type="button" className="return-button">
+              {
+                this.isPathToDataSet() ?
+                  <Link to="/album">
+                    <img src={arrow_left} alt="" />
+                  </Link>:
+                    <img src={arrow_left} className="return-button-icon-gray disabled" alt="" />
+              }
+            </button>
+            <div className="settings-content">
+            Wybierz miejsce, gdzie będą zapisywane twoje dane
+              <button
+                type="button"
+                onClick={this.selectPath}
+                className="select-data-source-path-button"
+                >
+                Wybierz folder
+              </button>
+            </div>
+            {
+              this.state.pathToUserFiles ? <span>Obecnie jest to: {this.state.pathToUserFiles}</span> : ""
+            }
+            
+          </>
+          );
+        }
+  }
 }
 
 export default SettingsComponent;
