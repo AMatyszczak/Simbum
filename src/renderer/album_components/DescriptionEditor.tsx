@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import { PageIdProps } from './PageIdProps';
 
 interface DescriptionState {
-  pageId: string;
+  albumId: string;
   name: string;
   text: string;
 }
@@ -13,8 +13,8 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
     super(props);
 
     this.state = {
-      pageId: props.pageId,
-      name: props.pageId,
+      albumId: props.albumId,
+      name: props.albumId,
       text: '',
     };
   }
@@ -22,8 +22,8 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   onTextChanged(text: any) {
     this.setState({ text: text });
     window.electron.ipcRenderer.sendMessage('page-description-changed', [
-      this.props.pageId,
-      this.props.pageId,
+      this.props.albumId,
+      this.props.albumId,
       text,
     ]);
   }
@@ -33,7 +33,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   }
 
   componentDidUpdate(prevProps: PageIdProps) {
-    if (prevProps.pageId != this.props.pageId) {
+    if (prevProps.albumId != this.props.albumId) {
       this.loadData();
     }
   }
@@ -66,7 +66,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
       this.setState({ text: arg });
     });
     window.electron.ipcRenderer.sendMessage('get-page-description', [
-      this.props.pageId,
+      this.props.albumId,
     ]);
   }
 }

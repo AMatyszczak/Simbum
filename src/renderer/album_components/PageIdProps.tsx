@@ -1,3 +1,3 @@
 export interface PageIdProps {
-  pageId: string;
+  albumId: string;
 }

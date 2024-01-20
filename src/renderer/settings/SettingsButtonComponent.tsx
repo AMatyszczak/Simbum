@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import settings_icon from '../../../assets/icons/settings.svg';
+import settings_icon from '../../../assets/buttons/settings.svg';
 
 function SettingsButtonComponent() {
   return (

@@ -1,5 +1,5 @@
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import arrow_left from '../../../assets/icons/arrow_left.svg';
+import { Link, Navigate } from 'react-router-dom';
+import arrow_left from '../../../assets/buttons/arrow_left.svg';
 import './SettingsComponent.css';
 import React from 'react';
 

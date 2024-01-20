@@ -47,29 +47,34 @@ function createPathIfNotExists(p: string) {
   }
 }
 
-function createPathToContent(rootPath: string, contentName: string) {
-  return path.join(rootPath, contentName);
+function createPathToAlbum(rootPath: string, albumId: string) {
+  return path.join(rootPath, "albums", albumId);
+}
+
+function createPathToImage(rootPath: string, albumId:string, imageId: string) {
+  return path.join(rootPath, "albums", albumId, "images", imageId.concat(".png"));
 }
 
 ipcMain.on('page-image-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const file = fs.readFileSync(args[2]);
-    const contentName = args[1];
-    const contentPath = createPathToContent(rootPath, contentName);
-    createPathIfNotExists(contentPath);
-    fs.writeFileSync(`${contentPath}/img.png`, file);
+    const albumId = args[0];
+    const imageId = args[1];
+    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    console.log(`_____________ page-image-changed :${imageId}, ${imagePath}`)
+    fs.writeFileSync(imagePath, file);
   }
 });
 
 ipcMain.on('page-title-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[1];
-    const contentPath = createPathToContent(rootPath, contentName);
-    createPathIfNotExists(contentPath);
+    const albumId = args[1];
+    const albumPath = createPathToAlbum(rootPath, albumId);
+    createPathIfNotExists(albumPath);
     const value = args[2];
-    fs.writeFileSync(`${contentPath}/title.txt`, value);
+    fs.writeFileSync(`${albumPath}/title.txt`, value);
   }
 });
 
@@ -77,93 +82,151 @@ ipcMain.on('page-description-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
-    const contentPath = createPathToContent(rootPath, contentName);
+    const contentPath = createPathToAlbum(rootPath, contentName);
     createPathIfNotExists(contentPath);
-    const value = args[2];
+    const value = args[3];
     fs.writeFileSync(`${contentPath}/description.txt`, value);
   }
 });
 
-ipcMain.on('page-created', async (event, arg) => {
+ipcMain.on('get-albums', async (event, arg) => {
+  const rootPath: string = store.get('dataPath');
+    if (rootPath != null) {
+      let albums = fs.readdirSync(path.join(rootPath, "albums"))
+      event.reply('get-albums', albums);
+    }
+});
+
+ipcMain.on('create-new-album', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const pagesList = store.get('pagesList');
-    const newPageNo = arg[0].toString();
+    const newAlbumId = arg[0].toString();
 
-    pagesList.push(newPageNo);
-    const contentPath = createPathToContent(rootPath, newPageNo);
+    const albumPath = createPathToAlbum(rootPath, newAlbumId);
+    createPathIfNotExists(albumPath);
+    createPathIfNotExists(path.join(albumPath, "images"));
 
-    createPathIfNotExists(contentPath);
+    fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
+    fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
 
-    store.set('pagesList', pagesList);
-    fs.writeFileSync(`${contentPath}/title.txt`, '');
-    fs.writeFileSync(`${contentPath}/description.txt`, '');
-
-    event.reply('page-created', newPageNo);
+    event.reply('create-new-album');
   }
 });
 
-ipcMain.on('get-page-title', async (event, args) => {
+ipcMain.on('get-album-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
     if (contentName == null) {
-      event.reply('get-page-title',null);  
+      event.reply('get-album-title',null);  
     } else {
-      const contentPath = createPathToContent(rootPath, contentName);
+      const contentPath = createPathToAlbum(rootPath, contentName);
       const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
-      event.reply('get-page-title', fileContent.toString());
+      event.reply('get-album-title', fileContent.toString());
     }
   }
 });
 
-ipcMain.on('get-page-description', async (event, args) => {
+ipcMain.on('get-album-description', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[0];
     if (contentName == null) {
-      event.reply('get-page-description',null);  
+      event.reply('get-album-description',null);  
     } else {
-      const contentPath = createPathToContent(rootPath, contentName);
+      const contentPath = createPathToAlbum(rootPath, contentName);
       const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
-      event.reply('get-page-description', fileContent.toString());
+      event.reply('get-album-description', fileContent.toString());
     }
   }
 });
 
-ipcMain.on('get-page-image', async (event, args) => {
+ipcMain.on('get-album-page-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[0];
-    if (contentName == null) {
-      event.reply('get-page-image',null);  
+    const albumId = args[0];
+    const imageId = args[1];
+    if (albumId == null || imageId == null) {
+      event.reply('get-album-page-image',null, null);  
     } else {
-      const contentPath = createPathToContent(rootPath, contentName);
-      const fileExists = fs.existsSync(`${contentPath}/img.png`);
+      const imagePath = createPathToImage(rootPath, albumId, imageId);
+      const fileExists = fs.existsSync(imagePath);
       event.reply(
-        'get-page-image',
-        fileExists ? `file://${contentPath}/img.png` : null
+        'get-album-page-image',
+        fileExists ? `file://${imagePath}` : null
       );
     }
   }
 });
 
-ipcMain.on('get-pages-images', async (event, args) => {
+ipcMain.on('get-album', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentNames = args[0];
-    if (contentNames == null || Array.isArray(contentNames) === false || contentNames.length === 0) {
-      event.reply('get-pages-images', null);  
+    const albumId = args[0]
+    if (albumId == null) {
+      event.reply('get-album', null);
     } else {
-      const pagesImagesPaths: string[] = []
-      for (let contentName of contentNames) {
-        const contentPath = createPathToContent(rootPath, contentName);
-        const fileExists = fs.existsSync(`${contentPath}/img.png`);
-        if (fileExists) {
-          pagesImagesPaths.push(`file://${contentPath}/img.png`)
-        }
+      const albumPath = createPathToAlbum(rootPath, albumId);
+      const albumExists = fs.existsSync(albumPath);
+      if (!albumExists) {
+        event.reply('get-album', null);
       }
-      event.reply('get-pages-images', pagesImagesPaths);
+      const albumImagesFolderExists = fs.existsSync(path.join(albumPath, "images"));
+      if (!albumImagesFolderExists) {
+        event.reply('get-album', null);
+      }
+      const albumTitleExists = fs.existsSync(path.join(albumPath, 'title.txt'))
+      if(!albumTitleExists) {
+        event.reply('get-album', null);
+      }
+      const albumDescriptionExists = fs.existsSync(path.join(albumPath, 'description.txt'))
+      if(!albumDescriptionExists) {
+        event.reply('get-album', null);
+      }
+      let imagesNamesWithExtensions = fs.readdirSync(path.join(albumPath, "images"))
+      imagesNamesWithExtensions = imagesNamesWithExtensions != null ? imagesNamesWithExtensions : []
+      let imagesNames = [] 
+      for (let imageName of imagesNamesWithExtensions) {
+        imagesNames.push(imageName.split('.')[0])
+      }
+      console.log(`_________________ ${imagesNames}`)
+      event.reply('get-album', {id: albumId, no: Number(albumId), imagesIds: imagesNames});
+    }
+  }
+});
+
+ipcMain.on('get-album-images', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const albumId = args[0]
+    if (albumId == null) {
+      event.reply('get-album-images', null);
+    } else {
+      const albumPath = createPathToAlbum(rootPath, albumId);
+      const albumExists = fs.existsSync(albumPath);
+      const pathToImages = path.join(albumPath, "images")
+      if (!albumExists) {
+        event.reply('get-album-images', null);
+      }
+      const albumImagesFolderExists = fs.existsSync(pathToImages);
+      if (!albumImagesFolderExists) {
+        event.reply('get-album-images', null);
+      }
+      const albumTitleExists = fs.existsSync(path.join(albumPath, 'title.txt'))
+      if(!albumTitleExists) {
+        event.reply('get-album-images', null);
+      }
+      const albumDescriptionExists = fs.existsSync(path.join(albumPath, 'description.txt'))
+      if(!albumDescriptionExists) {
+        event.reply('get-album-images', null);
+      }
+      let imagesNames = fs.readdirSync(pathToImages)
+      let imagesPaths: {path: string, id: number}[] = []
+      for (let imageName of imagesNames) {
+        imagesPaths.push({path: `file://${pathToImages}/${imageName}`, id: Number(imageName.split('.')[0])})
+      }
+      imagesPaths = imagesPaths != null ? imagesPaths : [] 
+      event.reply('get-album-images', imagesPaths);
     }
   }
 });

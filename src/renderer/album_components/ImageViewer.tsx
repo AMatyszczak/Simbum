@@ -9,16 +9,20 @@ import { PageIdProps } from './PageIdProps';
 import React from 'react';
 
 interface ImageViewerProps {
+  albumId: string;
   pagesList: string[];
   pageId: string;
-  onNextPageClick: any;
-  onPrevPageClick: any;
+  onNextAlbumClick: any;
+  onPrevAlbumClick: any;
+  moveToPage: any;
+  shouldDisableNextButton: any
+  shouldDisablePrevButton: any
 }
 
 interface ImageViewerState {
   currentImagePath: string;
   nextImagePath: string;
-  thumbnailsPaths: string[];
+  thumbnails: {path: string, id: number}[];
 }
 
 class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
@@ -28,19 +32,20 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     this.state = {
       currentImagePath: '',
       nextImagePath: '',
-      thumbnailsPaths: []
+      thumbnails: []
     };
+    this.loadAlbumThumbnails();
   }
 
   componentDidMount() {
     this.loadCurrentImagePath();
-    this.loadImageThumbnails();
+    this.loadAlbumThumbnails();
   }
 
-  componentDidUpdate(prevProps: PageIdProps) {
-    if (prevProps.pageId != this.props.pageId) {
+  componentDidUpdate(prevProps: ImageViewerProps) {
+    if (prevProps.pageId != this.props.pageId || prevProps.albumId != this.props.albumId) {
       this.loadCurrentImagePath();
-      this.loadImageThumbnails();
+      this.loadAlbumThumbnails();
     }
   }
 
@@ -49,7 +54,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     if (file.type.includes('image/')) {
       this.setState({ currentImagePath: `file://${file.path}` });
       window.electron.ipcRenderer.sendMessage('page-image-changed', [
-        this.props.pageId,
+        this.props.albumId,
         this.props.pageId,
         file.path,
       ]);
@@ -70,63 +75,43 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     e.stopPropagation();
   };
 
-  shouldDisablePrevButton(pageId: string) {
-    return this.checkIfFirstPage(pageId, this.props.pagesList);
-  }
-
-  shouldDisableNextButton(pageId: string) {
-    return pageId == null || !this.checkIfImageSet(this.state.currentImagePath)
-  }
-
-  private loadImageThumbnails() {
-    window.electron.ipcRenderer.once('get-pages-images', (arg: any) => {
-      this.setState({ thumbnailsPaths: arg ? arg.reverse() : [] });
+  private loadAlbumThumbnails() {
+    window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
+      this.setState({ thumbnails: arg ? arg.reverse() : [] });
     });
-    window.electron.ipcRenderer.sendMessage('get-pages-images', [
-      this.props.pagesList,
+    window.electron.ipcRenderer.sendMessage('get-album-images', [
+      this.props.albumId,
     ]);
   }
 
-  private checkIfLastPage(pageId: string, pagesList: string[]) {
-    return pageId === pagesList[pagesList.length - 1];
-  }
-
-  private checkIfFirstPage(pageId: string, pagesList: string[]) {
-    return pageId === pagesList[0];
-  }
-
   private loadCurrentImagePath() {
-    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+    window.electron.ipcRenderer.once('get-album-page-image', (arg: any) => {
       this.setState({ currentImagePath: arg ? arg : '' });
       this.loadNextImagePath()
     });
-    window.electron.ipcRenderer.sendMessage('get-page-image', [
-      this.props.pageId,
+    window.electron.ipcRenderer.sendMessage('get-album-page-image', [
+      this.props.albumId, this.props.pageId,
     ]);
   }
 
   private loadNextImagePath() {
-    window.electron.ipcRenderer.once('get-page-image', (arg: any) => {
+    window.electron.ipcRenderer.once('get-album-page-image', (arg: any) => {
       this.setState({ nextImagePath: arg ? arg : '' });
     });
 
     const index = this.props.pagesList.findIndex(page => page == this.props.pageId)
-    window.electron.ipcRenderer.sendMessage('get-page-image', [
+    window.electron.ipcRenderer.sendMessage('get-album-page-image', [
       this.props.pagesList[index + 1],
     ]);
   }
 
-  private checkIfImageSet(imagePath: string) {
-    return imagePath != null && imagePath != '';
-  }
-
   private determineButtonImg() {
-    if (this.checkIfLastPage(this.props.pageId, this.props.pagesList) || !this.checkIfImageSet(this.state.nextImagePath)) {
-      return button_left_create_page;
-    }
-    if (this.shouldDisableNextButton(this.props.pageId)) {
-      return button_left_disabled;
-    }
+    // if (this.checkIfLastPage(this.props.pageId, this.props.pagesList) || !this.checkIfImageSet(this.state.nextImagePath)) {
+    //   return button_left_create_page;
+    // }
+    // if (this.shouldDisableNextButton(this.props.pageId)) {
+    //   return button_left_disabled;
+    // }
 
     return button_left;
   }
@@ -138,13 +123,13 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
           <button
             className="next-album-image-button"
             type="button"
-            disabled={this.shouldDisableNextButton(this.props.pageId)}
+            disabled={this.props.shouldDisableNextButton()}
           >
             <img
               src={this.determineButtonImg()}
               className="button-image"
               alt=""
-              onClick={this.props.onNextPageClick}
+              onClick={this.props.onNextAlbumClick}
             />
           </button>
           <div
@@ -165,24 +150,24 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
           <button
             className="prev-album-image-button"
             type="button"
-            disabled={this.shouldDisablePrevButton(this.props.pageId)}
+            disabled={this.props.shouldDisablePrevButton()}
           >
             <img
               src={
-                this.shouldDisablePrevButton(this.props.pageId)
+                this.props.shouldDisablePrevButton(this.props.pageId)
                   ? button_right_disabled
                   : button_right
               }
               className="button-image"
               alt=""
-              onClick={this.props.onPrevPageClick}
+              onClick={this.props.onPrevAlbumClick}
             />
           </button>
         </div>
         <div className='album-image-thumbnail-list'>
             {
-              this.state.thumbnailsPaths.map((imagePath, index) => (
-                <img src={imagePath} key={index} className="album-image-thumbnail" width="110px"></img>
+              this.state.thumbnails.map((thumbnail) => (
+                <img src={thumbnail.path} key={thumbnail.id} className="album-image-thumbnail" width="110px" onClick={(e) => this.props.moveToPage(thumbnail.id)}></img>
               ))
             }
           </div>

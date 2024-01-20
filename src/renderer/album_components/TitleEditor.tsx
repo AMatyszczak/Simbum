@@ -10,7 +10,7 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
   constructor(props: PageIdProps) {
     super(props);
     this.state = {
-      name: props.pageId,
+      name: props.albumId,
       text: '',
     };
   }
@@ -20,7 +20,7 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
   }
 
   componentDidUpdate(prevProps: PageIdProps) {
-    if (prevProps.pageId != this.props.pageId) {
+    if (prevProps.albumId != this.props.albumId) {
       this.loadData();
     }
   }
@@ -29,8 +29,8 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
     const eventText = event.target.value;
     this.setState({ text: eventText });
     window.electron.ipcRenderer.sendMessage('page-title-changed', [
-      this.props.pageId,
-      this.props.pageId,
+      this.props.albumId,
+      this.props.albumId,
       eventText,
     ]);
   }
@@ -48,11 +48,11 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
   }
 
   private loadData() {
-    window.electron.ipcRenderer.once('get-page-title', (arg: any) => {
+    window.electron.ipcRenderer.once('get-album-title', (arg: any) => {
       this.setState({ text: arg });
     });
-    window.electron.ipcRenderer.sendMessage('get-page-title', [
-      this.props.pageId,
+    window.electron.ipcRenderer.sendMessage('get-album-title', [
+      this.props.albumId,
     ]);
   }
 }
