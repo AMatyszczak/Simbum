@@ -49,11 +49,10 @@ export default class AlbumComponent extends React.Component<
   }
 
   loadAlbums() {
-    window.electron.ipcRenderer.once('get-albums', (arg: any) => {
-      console.log(`loadAlbums___ : ${arg}`)
+    window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
       this.setState({albumsList: arg});
-    });
-    window.electron.ipcRenderer.sendMessage('get-albums', []);  
+    })
+    window.electron.ipcRenderer.sendMessage('get-album-map', []);
   }
 
   loadAlbum(id: string) {
@@ -61,9 +60,6 @@ export default class AlbumComponent extends React.Component<
       if (arg == null) {
         this.createNewAlbum(0);
       } else {
-        console.log(`id: ${arg.id}`)
-        console.log(`no: ${arg.no}`)
-        console.log(`images: ${arg.imagesIds}`)
         this.setState({album: arg, pagesLoaded: true, pageNo: 0, pageId: "0"});
       }
     });
@@ -73,12 +69,9 @@ export default class AlbumComponent extends React.Component<
   }
 
   onNextAlbumClick() {
-    console.log(`onNextAlbumClick, this.isLastAlbum(): ${this.isLastAlbum()}` )
     if (this.isLastAlbum()) {
       this.createNewAlbum(this.state.album.no + 1);
     } else {
-      console.log(typeof this.state.album.no)
-      console.log(`____ ${String()}`)
       this.moveToAlbum(String(this.state.album.no + 1));
     }
   }
@@ -88,40 +81,35 @@ export default class AlbumComponent extends React.Component<
   }
 
   moveToAlbum(albumId: string) {
-    console.log(`moveToAlbum: ${albumId}`)
     this.loadAlbum(albumId)
-    // this.setState({
-    //   album: {id: albumId, no: Number(albumId), imagesIds: [] }
-    // });
   }
 
-  moveToPage(pageNo: number) {
-    console.log(`___ pageNo moveToPage ${pageNo}, pageId: ${this.state.album.imagesIds[pageNo]}`)
-    this.setState({
-      pageId: this.state.album.imagesIds[pageNo],
-      pageNo: pageNo,
-    });
+  moveToPage(pageId: number) {
+    const pageNo = this.state.album.imagesIds.findIndex((e: any) => e == pageId.toString())
+    if(pageNo != -1) {
+      this.setState({
+        pageId: this.state.album.imagesIds[pageNo],
+        pageNo: pageNo,
+      });
+    }
   }
 
   createNewAlbum(albumNo: number) {
-    window.electron.ipcRenderer.once('create-new-album', (arg: any) => {
+    window.electron.ipcRenderer.once('create-album', (arg: any) => {
       this.setState({ album: {id: String(albumNo), no: albumNo, imagesIds: []}, pageNo: albumNo });
     });
-    window.electron.ipcRenderer.sendMessage('create-new-album', [albumNo]);
+    window.electron.ipcRenderer.sendMessage('create-album', [albumNo]);
   }
 
   private isFirstAlbum(): boolean {
-    console.log(`_____isFirstAlbum ${this.state.album.no}`)
     return false
   }
 
   private isLastAlbum(): boolean {
-    console.log(`______isLastAlbum this.state.albumsList.length:, ${this.state.albumsList.length}, ${this.state.album.no}`)
     return this.state.albumsList.length - 1 == this.state.album.no
   }
 
   private shouLastAlbum(): boolean {
-    console.log(`______isLastAlbum this.state.albumsList.length:, ${this.state.albumsList.length}, ${this.state.album.no}`)
     return this.state.albumsList.length == this.state.album.no
   }
 

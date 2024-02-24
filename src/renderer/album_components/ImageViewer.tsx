@@ -15,14 +15,18 @@ interface ImageViewerProps {
   onNextAlbumClick: any;
   onPrevAlbumClick: any;
   moveToPage: any;
-  shouldDisableNextButton: any
-  shouldDisablePrevButton: any
+  shouldDisableNextButton: any;
+  shouldDisablePrevButton: any;
 }
 
 interface ImageViewerState {
   currentImagePath: string;
   nextImagePath: string;
-  thumbnails: {path: string, id: number}[];
+  savedThumbnails: {path: string, id: number}[];
+  showedThumbnails: {path: string, id: number}[];
+  draggedElement: {path: string, id: number};
+  isDragging: boolean;
+  indexOfDraggedElement: number
 }
 
 class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
@@ -32,7 +36,11 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     this.state = {
       currentImagePath: '',
       nextImagePath: '',
-      thumbnails: []
+      savedThumbnails: [],
+      showedThumbnails: [],
+      draggedElement: {path: '', id: -1},
+      isDragging: false,
+      indexOfDraggedElement: -1
     };
     this.loadAlbumThumbnails();
   }
@@ -50,34 +58,111 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
   }
 
   handleDrop = (e: any) => {
+    if(e.target.className == "album-image-thumbnail-container" || e.target.className == "album-image-thumbnail-list") {
+      this.setState({isDragging: false, showedThumbnails: [...this.state.savedThumbnails]})
+    }
+
+    this.setState({isDragging: false})
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
-      this.setState({ currentImagePath: `file://${file.path}` });
-      window.electron.ipcRenderer.sendMessage('page-image-changed', [
+      // this.setState({ currentImagePath: `file://${file.path}` });
+
+
+      window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
+        const thumbnails = arg ? arg : []
+        this.setState({ savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+      }); 
+      
+      window.electron.ipcRenderer.sendMessage('page-image-added', [
         this.props.albumId,
-        this.props.pageId,
-        file.path,
-      ]);
+        this.state.indexOfDraggedElement,
+        file.path
+      ])
+
+      // window.electron.ipcRenderer.sendMessage('page-image-changed', [
+      //   this.props.albumId,
+      //   this.props.pageId,
+      //   file.path,
+      // ]);
     }
     e.preventDefault();
     e.stopPropagation();
   };
+
   handleDragOver = (e: any) => {
     e.preventDefault();
-    e.stopPropagation();
-  };
-  handleDragEnter = (e: any) => {
-    e.preventDefault();
-    e.stopPropagation();
-  };
-  handleDropLeave = (e: any) => {
-    e.preventDefault();
+
+    if (this.state.isDragging) {
+      let parentElement: any = e.target.className == 'album-image-thumbnail-list' ? e.target : e.target.parentElement
+
+      const postionOfImageOnThumbnails = this.determinePositionOfImage(parentElement, e.clientX, false)
+
+      if (this.state.indexOfDraggedElement !== postionOfImageOnThumbnails) {
+        const thumbs = [...this.state.savedThumbnails]
+        thumbs.splice(postionOfImageOnThumbnails, 0, this.state.draggedElement)
+        this.setState({showedThumbnails: thumbs, indexOfDraggedElement: postionOfImageOnThumbnails})
+      }
+    }
+
     e.stopPropagation();
   };
 
+  handleDropLeave = (e: any) => {
+    e.preventDefault();
+
+    if(this.state.isDragging && e.relatedTarget.className != "album-image-thumbnail-container" && e.relatedTarget.className != "album-image-thumbnail-list") {
+      this.setState({isDragging: false})
+      this.setState({isDragging: false, showedThumbnails: [...this.state.savedThumbnails], indexOfDraggedElement: -1})
+    }
+
+    e.stopPropagation();
+  };
+
+  handleDragEnter = (e: any) => {
+    e.preventDefault();
+
+    if (e.target.parentElement.className == "album-image-thumbnail-list" && !this.state.isDragging) {
+      const postionOfImageOnThumbnails = this.determinePositionOfImage(e.target.parentElement, e.clientX, false)
+      
+      let thumbs: {path: string, id: number}[] = [...this.state.savedThumbnails]
+      let ele = {
+        path: "file:///home/adrian/Desktop/SimBumStaff/img_placeholder.png",
+        id: 69,
+      }
+      thumbs.splice(postionOfImageOnThumbnails, 0, ele);
+
+      this.setState({ showedThumbnails: thumbs, isDragging: true, indexOfDraggedElement: postionOfImageOnThumbnails, draggedElement: ele});
+      e.stopPropagation();
+    }
+  }
+
+  private determinePositionOfImage(parentElement: any, clientX: any, addImageWith: boolean) {
+    let imageWidth = 120 + 8;
+    let parentElementBoundRect = parentElement.getBoundingClientRect()
+
+    const scrollLeft = parentElement.scrollLeft;
+    let relativeX = clientX - parentElementBoundRect.left + scrollLeft;    
+    if (addImageWith) {
+      relativeX += imageWidth;
+    }
+    
+    let postionOfImage = Math.floor(relativeX/imageWidth)
+    if (postionOfImage < 0 ) {
+      postionOfImage = 0
+    }
+    return postionOfImage
+  }
+
+  handleDragEnd = (e: any) => {
+    this.setState({isDragging: false})
+    e.preventDefault();
+    e.stopPropagation();
+  }
+
   private loadAlbumThumbnails() {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-      this.setState({ thumbnails: arg ? arg.reverse() : [] });
+      const thumbnails = arg ? arg : []
+      this.setState({ savedThumbnails: thumbnails, showedThumbnails: thumbnails });
     });
     window.electron.ipcRenderer.sendMessage('get-album-images', [
       this.props.albumId,
@@ -118,8 +203,8 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
   render() {
     return (
-      <div className='image-viewer-view'>
-        <div className="album-images-controller">
+      <div className='image-viewer-view'>        
+        <div className="album-images-controller" >
           <button
             className="next-album-image-button"
             type="button"
@@ -130,6 +215,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
               className="button-image"
               alt=""
               onClick={this.props.onNextAlbumClick}
+              draggable="false"
             />
           </button>
           <div
@@ -141,10 +227,6 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
               className="album-image"
               src={this.state.currentImagePath || placeholder}
               alt=""
-              onDrop={(e) => this.handleDrop(e)}
-              onDragOver={(e) => this.handleDragOver(e)}
-              onDragEnter={(e) => this.handleDragEnter(e)}
-              onDragLeave={(e) => this.handleDropLeave(e)}
             />
           </div>
           <button
@@ -161,15 +243,31 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
               className="button-image"
               alt=""
               onClick={this.props.onPrevAlbumClick}
+              draggable="false"
             />
+
           </button>
         </div>
-        <div className='album-image-thumbnail-list'>
+        <div className='album-image-thumbnail-list' 
+          onDragEnter={(e) => this.handleDragEnter(e)} 
+          onDragLeave={(e) => this.handleDropLeave(e)} 
+          onDragOver={(e) => this.handleDragOver(e)}
+          onDrop={(e) => this.handleDrop(e)}>
             {
-              this.state.thumbnails.map((thumbnail) => (
-                <img src={thumbnail.path} key={thumbnail.id} className="album-image-thumbnail" width="110px" onClick={(e) => this.props.moveToPage(thumbnail.id)}></img>
+              this.state.showedThumbnails.map((thumbnail) => (
+                <div className='album-image-thumbnail-container'>
+                  <img 
+                    draggable="false"
+                    src={thumbnail.path} 
+                    key={thumbnail.id} 
+                    className={this.state.isDragging ? "album-image-thumbnail thumbnail-drag-overlay" : "album-image-thumbnail"} 
+                    onClick={(e) => this.props.moveToPage(thumbnail.id)}
+                  />
+                </div>
               ))
+              
             }
+            
           </div>
       </div>
     );

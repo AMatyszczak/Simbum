@@ -85,14 +85,12 @@ body {
   .album-images-controller
   button.next-album-image-button:disabled {
   border: #1452ae;
-  pointer-events: none;
 }
 
 .album-content
   .album-images-controller
   button.prev-album-image-button:disabled {
   border: #1452ae;
-  pointer-events: none;
 }
 
 .album-image-container {
@@ -104,16 +102,25 @@ body {
 .album-image-thumbnail-list {
   display: flex;
   max-width: calc(80vw);
-  overflow-x:auto;
-  overflow-y:hidden;
+  overflow-x: auto;
+  overflow-y: hidden;
   margin: 5px 5px 0 5px;
   bottom: 0;
   object-fit: contain;
+  z-index: 99;
 }
 
 .album-image-thumbnail {
   position: block;
   margin: 0 10px 0 0;
+  z-index: -1;
+  /* position: relative; */
+  /* margin-right: 8px; */
+  width: 120px;
+}
+
+.album-image-thumbnail-container {
+  z-index: -1;
 }
 
 .album-image {
@@ -128,6 +135,18 @@ body {
   min-height: 1rem;
   max-width: calc(10vw);
   max-height: min(50%, 8rem);
+}
+
+.thumbnail-drag-overlay {
+  position: relative;
+  margin-right: 8px;
+  width: 120px;
+}
+
+.album-image-thumbnail:hover {
+  background-size: cover;
+  opacity: 0.4;
+  /* filter: alpha(opacity=40); */
 }
 
 .album-image-description-container {
@@ -169,7 +188,6 @@ body {
 .album-image-description-content .ql-editor {
   font-family: Simsowo;
   color: #1452ae;
-  background-color: #f0f7fb;
 
   font-size: min(2.75vh, 2.75vw);
   text-align: justify;

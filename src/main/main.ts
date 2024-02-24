@@ -15,6 +15,8 @@ import log from 'electron-log';
 import fs from 'fs';
 import Store, { Schema } from 'electron-store';
 import { resolveHtmlPath } from './util';
+import { v4 as uuidv4 } from 'uuid';
+
 
 interface UserPreferences {
   rootPath: string;
@@ -58,11 +60,10 @@ function createPathToImage(rootPath: string, albumId:string, imageId: string) {
 ipcMain.on('page-image-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const file = fs.readFileSync(args[2]);
     const albumId = args[0];
     const imageId = args[1];
+    const file = fs.readFileSync(args[2]);
     const imagePath = createPathToImage(rootPath, albumId, imageId);
-    console.log(`_____________ page-image-changed :${imageId}, ${imagePath}`)
     fs.writeFileSync(imagePath, file);
   }
 });
@@ -75,6 +76,35 @@ ipcMain.on('page-title-changed', async (event, args) => {
     createPathIfNotExists(albumPath);
     const value = args[2];
     fs.writeFileSync(`${albumPath}/title.txt`, value);
+  }
+});
+
+ipcMain.on('page-image-added', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const albumId = args[0];
+    const indexOfImage = args[1]
+    const file = fs.readFileSync(args[2]);
+
+    const imageId = uuidv4()
+    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    fs.writeFileSync(imagePath, file);
+    
+    const contentPath = createPathToAlbum(rootPath, albumId)
+    let imagesMapFile = fs.readFileSync(path.join(contentPath, "images_map.json"))
+    let imagesMap = JSON.parse(imagesMapFile.toString())
+    imagesMap["images"].splice(indexOfImage, 0, {
+      "id": imageId,
+      "filename": imageId + ".png"
+    })
+
+    fs.writeFileSync(path.join(contentPath, "images_map.json"), JSON.stringify(imagesMap))
+
+    imagesMap["images"].forEach((element: any) => {
+      element["path"] = "file://" + path.join(contentPath, "images", element.filename)
+    });
+
+    event.reply('get-album-images', imagesMap["images"])
   }
 });
 
@@ -91,13 +121,23 @@ ipcMain.on('page-description-changed', async (event, args) => {
 
 ipcMain.on('get-albums', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
-    if (rootPath != null) {
-      let albums = fs.readdirSync(path.join(rootPath, "albums"))
-      event.reply('get-albums', albums);
-    }
+  if (rootPath != null) {
+    let albums = fs.readdirSync(path.join(rootPath, "albums"))
+    event.reply('get-albums', albums);
+  }
 });
 
-ipcMain.on('create-new-album', async (event, arg) => {
+ipcMain.on('get-album-map', async (event, arg) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+    let albumMap = JSON.parse(albumMapFile.toString())
+
+    event.reply('get-album-map', albumMap["albums"])
+  }
+})
+
+ipcMain.on('create-album', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const newAlbumId = arg[0].toString();
@@ -109,7 +149,7 @@ ipcMain.on('create-new-album', async (event, arg) => {
     fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
     fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
 
-    event.reply('create-new-album');
+    event.reply('create-album');
   }
 });
 
@@ -189,7 +229,6 @@ ipcMain.on('get-album', async (event, args) => {
       for (let imageName of imagesNamesWithExtensions) {
         imagesNames.push(imageName.split('.')[0])
       }
-      console.log(`_________________ ${imagesNames}`)
       event.reply('get-album', {id: albumId, no: Number(albumId), imagesIds: imagesNames});
     }
   }
@@ -198,37 +237,52 @@ ipcMain.on('get-album', async (event, args) => {
 ipcMain.on('get-album-images', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0]
-    if (albumId == null) {
-      event.reply('get-album-images', null);
-    } else {
-      const albumPath = createPathToAlbum(rootPath, albumId);
-      const albumExists = fs.existsSync(albumPath);
-      const pathToImages = path.join(albumPath, "images")
-      if (!albumExists) {
-        event.reply('get-album-images', null);
-      }
-      const albumImagesFolderExists = fs.existsSync(pathToImages);
-      if (!albumImagesFolderExists) {
-        event.reply('get-album-images', null);
-      }
-      const albumTitleExists = fs.existsSync(path.join(albumPath, 'title.txt'))
-      if(!albumTitleExists) {
-        event.reply('get-album-images', null);
-      }
-      const albumDescriptionExists = fs.existsSync(path.join(albumPath, 'description.txt'))
-      if(!albumDescriptionExists) {
-        event.reply('get-album-images', null);
-      }
-      let imagesNames = fs.readdirSync(pathToImages)
-      let imagesPaths: {path: string, id: number}[] = []
-      for (let imageName of imagesNames) {
-        imagesPaths.push({path: `file://${pathToImages}/${imageName}`, id: Number(imageName.split('.')[0])})
-      }
-      imagesPaths = imagesPaths != null ? imagesPaths : [] 
-      event.reply('get-album-images', imagesPaths);
-    }
+    const contentName = args[0]
+ 
+    const contentPath = createPathToAlbum(rootPath, contentName)
+    let imagesMapFile = fs.readFileSync(path.join(contentPath, "images_map.json"))
+    let imagesMap = JSON.parse(imagesMapFile.toString())
+    
+    imagesMap["images"].forEach((element: any) => {
+      element["path"] = "file://" + path.join(contentPath, "images", element.filename)
+    });
+
+    event.reply('get-album-images', imagesMap["images"])
   }
+
+  // const rootPath: string = store.get('dataPath');
+  // if (rootPath != null) {
+    // const albumId = args[0]
+    // if (albumId == null) {
+      // event.reply('get-album-images', null);
+    // } else {
+      // const albumPath = createPathToAlbum(rootPath, albumId);
+      // const albumExists = fs.existsSync(albumPath);
+      // const pathToImages = path.join(albumPath, "images")
+      // if (!albumExists) {
+        // event.reply('get-album-images', null);
+      // }
+      // const albumImagesFolderExists = fs.existsSync(pathToImages);
+      // if (!albumImagesFolderExists) {
+        // event.reply('get-album-images', null);
+      // }
+      // const albumTitleExists = fs.existsSync(path.join(albumPath, 'title.txt'))
+      // if(!albumTitleExists) {
+        // event.reply('get-album-images', null);
+      // }
+      // const albumDescriptionExists = fs.existsSync(path.join(albumPath, 'description.txt'))
+      // if(!albumDescriptionExists) {
+        // event.reply('get-album-images', null);
+      // }
+      // let imagesNames = fs.readdirSync(pathToImages)
+      // let imagesPaths: {path: string, id: number}[] = []
+      // for (let imageName of imagesNames) {
+        // imagesPaths.push({path: `file://${pathToImages}/${imageName}`, id: Number(imageName.split('.')[0])})
+      // }
+      // imagesPaths = imagesPaths != null ? imagesPaths : [] 
+      // event.reply('get-album-images', imagesPaths);
+    // }
+  // }
 });
 
 ipcMain.on('electron-store-get', async (event, val) => {

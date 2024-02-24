@@ -4,7 +4,8 @@ export type Channels =
   | 'page-title-changed'
   | 'page-description-changed'
   | 'page-image-changed'
-  | 'create-new-album'
+  | 'page-image-added'
+  | 'create-album'
   | 'settings-select-path'
   | 'electron-store-get'
   | 'get-album-title'
@@ -12,7 +13,8 @@ export type Channels =
   | 'get-album-page-image'
   | 'get-album-images'
   | 'get-album'
-  | 'get-albums';
+  | 'get-albums'
+  | 'get-album-map';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {

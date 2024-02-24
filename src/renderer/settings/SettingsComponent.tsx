@@ -32,7 +32,6 @@ class SettingsComponent extends React.Component<SettingsComponentProps, Settings
   }
 
   isPathToDataSet() {
-    console.log(`isPathToDataSet: ${this.props.isPathToUserFilesSet || this.state.pathToUserFiles != null && this.state.pathToUserFiles.length !=0}`)
     return this.props.isPathToUserFilesSet || this.state.pathToUserFiles
   }
 
