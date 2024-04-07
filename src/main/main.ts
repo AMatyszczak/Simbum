@@ -58,17 +58,20 @@ function createPathToImage(rootPath: string, albumId:string, imageId: string) {
 }
 
 ipcMain.on('page-image-changed', async (event, args) => {
+  console.log("page-image-changed")
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const albumId = args[0];
     const imageId = args[1];
     const file = fs.readFileSync(args[2]);
     const imagePath = createPathToImage(rootPath, albumId, imageId);
+
+    console.log("page-image-changed", rootPath, albumId, imageId)
     fs.writeFileSync(imagePath, file);
   }
 });
 
-ipcMain.on('page-title-changed', async (event, args) => {
+ipcMain.on('album-title-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const albumId = args[1];
@@ -85,7 +88,7 @@ ipcMain.on('page-image-added', async (event, args) => {
     const albumId = args[0];
     const indexOfImage = args[1]
     const file = fs.readFileSync(args[2]);
-
+    
     const imageId = uuidv4()
     const imagePath = createPathToImage(rootPath, albumId, imageId);
     fs.writeFileSync(imagePath, file);
@@ -99,7 +102,7 @@ ipcMain.on('page-image-added', async (event, args) => {
     })
 
     fs.writeFileSync(path.join(contentPath, "images_map.json"), JSON.stringify(imagesMap))
-
+    
     imagesMap["images"].forEach((element: any) => {
       element["path"] = "file://" + path.join(contentPath, "images", element.filename)
     });
@@ -108,13 +111,41 @@ ipcMain.on('page-image-added', async (event, args) => {
   }
 });
 
-ipcMain.on('page-description-changed', async (event, args) => {
+ipcMain.on('create-album', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const newAlbumIndex = args[0];
+    const newAlbumId = uuidv4();
+
+    const albumPath = createPathToAlbum(rootPath, newAlbumId);
+    createPathIfNotExists(albumPath);
+    createPathIfNotExists(path.join(albumPath, "images"));
+
+    fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
+    fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
+    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[]}))
+    
+    
+    let albumsMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+    let albumsMap = JSON.parse(albumsMapFile.toString())
+    albumsMap["albums"].splice(newAlbumIndex, 0, {
+      "id": newAlbumId
+    })
+
+    fs.writeFileSync(path.join(rootPath, "album_map.json"), JSON.stringify(albumsMap))    
+    event.reply('get-album-map', albumsMap["albums"])
+  }
+})
+    
+ipcMain.on('album-description-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const contentName = args[1];
     const contentPath = createPathToAlbum(rootPath, contentName);
     createPathIfNotExists(contentPath);
-    const value = args[3];
+    const value = args[2];
+
+    console.log('album-description-changed', contentPath, value)    
     fs.writeFileSync(`${contentPath}/description.txt`, value);
   }
 });
@@ -137,21 +168,6 @@ ipcMain.on('get-album-map', async (event, arg) => {
   }
 })
 
-ipcMain.on('create-album', async (event, arg) => {
-  const rootPath: string = store.get('dataPath');
-  if (rootPath != null) {
-    const newAlbumId = arg[0].toString();
-
-    const albumPath = createPathToAlbum(rootPath, newAlbumId);
-    createPathIfNotExists(albumPath);
-    createPathIfNotExists(path.join(albumPath, "images"));
-
-    fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
-    fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
-
-    event.reply('create-album');
-  }
-});
 
 ipcMain.on('get-album-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
@@ -206,6 +222,7 @@ ipcMain.on('get-album', async (event, args) => {
     if (albumId == null) {
       event.reply('get-album', null);
     } else {
+      console.log("albumId:", albumId, rootPath)
       const albumPath = createPathToAlbum(rootPath, albumId);
       const albumExists = fs.existsSync(albumPath);
       if (!albumExists) {

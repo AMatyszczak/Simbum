@@ -14,7 +14,8 @@ type Album = {
 }
 
 interface AlbumComponentState {
-  albumsList: string[];
+  albumsList: {id: string}[];
+  albumNo: number;
   pagesLoaded: boolean;
   pageNo: number;
   pageId: string;
@@ -29,6 +30,7 @@ export default class AlbumComponent extends React.Component<
     super(props);
     this.state = {
       albumsList: [],
+      albumNo: 0,
       pagesLoaded: false,
       pageNo: 0,
       pageId: '0',
@@ -37,99 +39,102 @@ export default class AlbumComponent extends React.Component<
 
     this.onNextAlbumClick = this.onNextAlbumClick.bind(this);
     this.onPrevAlbumClick = this.onPrevAlbumClick.bind(this);
-    this.moveToPage = this.moveToPage.bind(this);
-    this.isFirstAlbum = this.isFirstAlbum.bind(this);
-    this.isLastAlbum = this.isLastAlbum.bind(this);
-    this.shouLastAlbum = this.shouLastAlbum.bind(this);
+    this.isLastAlbumDisplayed = this.isLastAlbumDisplayed.bind(this);
+    this.isFirstAlbumDisplayed = this.isFirstAlbumDisplayed.bind(this);
   }
 
   componentDidMount() {
     this.loadAlbums();
-    this.loadAlbum(this.state.album.id);
+    // this.loadAlbumByIndex(0);
   }
 
   loadAlbums() {
+    console.log("loadAlbums")
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
+      console.log('get-album-map', arg)
       this.setState({albumsList: arg});
+      console.log("before loadAlbum", this.state.albumsList)
+      this.loadAlbumById(arg[0].id)
     })
     window.electron.ipcRenderer.sendMessage('get-album-map', []);
   }
 
-  loadAlbum(id: string) {
+  loadAlbumById(id: number) {
+    console.log("loadAlbumById", id, this.state.albumsList)
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
-      if (arg == null) {
-        this.createNewAlbum(0);
-      } else {
-        this.setState({album: arg, pagesLoaded: true, pageNo: 0, pageId: "0"});
-      }
+      console.log('get-album', arg)  
+      this.setState({album: arg, pagesLoaded: true, pageNo: 0, albumNo: 0});
+    });
+    window.electron.ipcRenderer.sendMessage('get-album', [id]);  
+  }
+
+  loadAlbumByIndex(index: number) {
+    console.log("loadAlbumByIndex", index, this.state.albumsList, this.state.albumsList[index])
+    window.electron.ipcRenderer.once('get-album', (arg: any) => {
+      console.log('get-album', arg)  
+      this.setState({album: arg, pagesLoaded: true, pageNo: 0, albumNo: index});
     });
     window.electron.ipcRenderer.sendMessage('get-album', [
-      id,
+      this.state.albumsList[index].id,
     ]);  
   }
 
   onNextAlbumClick() {
-    if (this.isLastAlbum()) {
-      this.createNewAlbum(this.state.album.no + 1);
+    console.log("onNextAlbumClick", this.state.albumNo)
+    if (this.isLastAlbumDisplayed()) {
+      this.createNewAlbum(this.state.albumNo + 1);
     } else {
-      this.moveToAlbum(String(this.state.album.no + 1));
+      this.moveToAlbum(this.state.albumNo + 1);
     }
   }
 
   onPrevAlbumClick() {
-    this.moveToAlbum(String(this.state.album.no - 1));
-  }
-
-  moveToAlbum(albumId: string) {
-    this.loadAlbum(albumId)
-  }
-
-  moveToPage(pageId: number) {
-    const pageNo = this.state.album.imagesIds.findIndex((e: any) => e == pageId.toString())
-    if(pageNo != -1) {
-      this.setState({
-        pageId: this.state.album.imagesIds[pageNo],
-        pageNo: pageNo,
-      });
+    console.log("onPrevAlbumClick", this.state.albumNo)
+    if (this.isFirstAlbumDisplayed()) {
+      this.createNewAlbum(this.state.albumNo - 1);
+    } else {
+      this.moveToAlbum(this.state.albumNo - 1);
     }
   }
 
-  createNewAlbum(albumNo: number) {
-    window.electron.ipcRenderer.once('create-album', (arg: any) => {
-      this.setState({ album: {id: String(albumNo), no: albumNo, imagesIds: []}, pageNo: albumNo });
-    });
-    window.electron.ipcRenderer.sendMessage('create-album', [albumNo]);
+  moveToAlbum(albumNo: number) {
+    this.loadAlbumByIndex(albumNo)
   }
 
-  private isFirstAlbum(): boolean {
-    return false
+  createNewAlbum(index: number) {
+    console.log("createNewAlbum")
+    window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
+      console.log("createNewAlbum get-album-map:", arg)
+      this.setState({albumsList: arg});
+    })
+    window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
 
-  private isLastAlbum(): boolean {
-    return this.state.albumsList.length - 1 == this.state.album.no
+  private isLastAlbumDisplayed(): boolean {
+    // console.log("isLastAlbumDisplayed", this.state.albumsList.length, this.state.albumNo, this.state.albumsList.length - 1 <= this.state.albumNo)
+    return this.state.albumsList.length - 1 <= this.state.albumNo
   }
 
-  private shouLastAlbum(): boolean {
-    return this.state.albumsList.length == this.state.album.no
+  private isFirstAlbumDisplayed(): boolean {
+    // console.log("isFirstAlbumDisplayed", this.state.albumNo, this.state.albumNo <= 0)
+    return this.state.albumNo <= 0 
   }
-
+  
   render() {
     if (!this.state.pagesLoaded) {return <div className='loader'/>}
     else
       return (
         <>
           <SettingsButtonComponent />
+          albumNo: {this.state.albumNo}
           <div className="album-content">
             <TitleEditor albumId={this.state.album.id} />
             <ImageViewer
               albumId={this.state.album.id}
-              pagesList={this.state.album.imagesIds}
-              pageId={this.state.pageId}
               onNextAlbumClick={this.onNextAlbumClick}
               onPrevAlbumClick={this.onPrevAlbumClick}
-              moveToPage={this.moveToPage}
-              shouldDisableNextButton={this.shouLastAlbum}
-              shouldDisablePrevButton={this.isFirstAlbum}
+              shouldDisableNextButton={this.isLastAlbumDisplayed}
+              shouldDisablePrevButton={this.isFirstAlbumDisplayed}
             />
             <DescriptionEditor albumId={this.state.album.id} />
           </div>
@@ -137,3 +142,7 @@ export default class AlbumComponent extends React.Component<
       );
     }
 }
+function uuidv4(): any {
+  throw new Error('Function not implemented.');
+}
+

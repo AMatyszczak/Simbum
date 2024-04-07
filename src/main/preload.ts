@@ -1,8 +1,8 @@
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
 export type Channels =
-  | 'page-title-changed'
-  | 'page-description-changed'
+  | 'album-title-changed'
+  | 'album-description-changed'
   | 'page-image-changed'
   | 'page-image-added'
   | 'create-album'

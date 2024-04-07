@@ -21,7 +21,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
 
   onTextChanged(text: any) {
     this.setState({ text: text });
-    window.electron.ipcRenderer.sendMessage('page-description-changed', [
+    window.electron.ipcRenderer.sendMessage('album-description-changed', [
       this.props.albumId,
       this.props.albumId,
       text,
@@ -62,10 +62,10 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   }
 
   private loadData() {
-    window.electron.ipcRenderer.once('get-page-description', (arg: any) => {
+    window.electron.ipcRenderer.once('get-album-description', (arg: any) => {
       this.setState({ text: arg });
     });
-    window.electron.ipcRenderer.sendMessage('get-page-description', [
+    window.electron.ipcRenderer.sendMessage('get-album-description', [
       this.props.albumId,
     ]);
   }

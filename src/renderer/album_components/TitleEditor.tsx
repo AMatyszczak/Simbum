@@ -28,7 +28,7 @@ class TitleEditor extends React.Component<PageIdProps, TitleState> {
   onTextChanged(event: any) {
     const eventText = event.target.value;
     this.setState({ text: eventText });
-    window.electron.ipcRenderer.sendMessage('page-title-changed', [
+    window.electron.ipcRenderer.sendMessage('album-title-changed', [
       this.props.albumId,
       this.props.albumId,
       eventText,
