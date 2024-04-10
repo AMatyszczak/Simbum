@@ -20,9 +20,9 @@ interface ImageViewerState {
   pagesList: {id: string, filename: string, path: string}[];
   currentImagePath: string;
   nextImagePath: string;
-  savedThumbnails: {path: string, id: number}[];
-  showedThumbnails: {path: string, id: number}[];
-  draggedElement: {path: string, id: number};
+  savedThumbnails: {path: string, filename: string, id: string}[];
+  showedThumbnails: {path: string, filename: string, id: string}[];
+  draggedElement: {path: string, filename: string, id: string};
   isDragging: boolean;
   indexOfDraggedElement: number
 }
@@ -39,7 +39,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
       nextImagePath: '',
       savedThumbnails: [],
       showedThumbnails: [],
-      draggedElement: {path: '', id: -1},
+      draggedElement: {path: '', filename: '', id: ''},
       isDragging: false,
       indexOfDraggedElement: -1
     };
@@ -60,13 +60,16 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     const file = e.dataTransfer.files.item(0);
 
     if (file.type.includes('image/')) {
-      
       this.setState({ currentImagePath: `file://${file.path}` });
-      window.electron.ipcRenderer.sendMessage('page-image-changed', [
-        this.props.albumId,
-        this.state.pageId,
-        file.path,
-      ]);
+
+      if(this.state.pageId != null) {
+        window.electron.ipcRenderer.sendMessage('page-image-changed', [
+          this.props.albumId,
+          this.state.pageId,
+          file.path,
+        ]);
+      }
+      
       this.loadAlbumImages(false);
     }
     e.stopPropagation()
@@ -132,10 +135,11 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     if (e.target.parentElement.className == "album-image-thumbnail-list" && !this.state.isDragging) {
       const postionOfImageOnThumbnails = this.determinePositionOfImage(e.target.parentElement, e.clientX, false)
       
-      let thumbs: {path: string, id: number}[] = [...this.state.savedThumbnails]
+      let thumbs: {path: string, filename: string, id: string}[] = [...this.state.savedThumbnails]
       let ele = {
         path: "file:///home/adrian/Desktop/SimBumStaff/img_placeholder.png",
-        id: 69,
+        filename: "",
+        id: "69",
       }
       thumbs.splice(postionOfImageOnThumbnails, 0, ele);
 
@@ -169,11 +173,16 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
 
   private loadAlbumImages(showFirstPage: boolean) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-      const thumbnails = arg ? arg : []
-      if(showFirstPage === true) {
-        this.setState({imageHash: Date.now(), pageId: thumbnails[0].id, currentImagePath: thumbnails[0].path, pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+      const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
+      console.log("loadAlbumImages:", thumbnails)
+      if(thumbnails.length >0) {
+        if(showFirstPage === true) {
+          this.setState({imageHash: Date.now(), pageId: thumbnails[0].id, currentImagePath: thumbnails[0].path, pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+        } else {
+          this.setState({imageHash: Date.now(), pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+        }
       } else {
-        this.setState({imageHash: Date.now(), pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+          this.setState({currentImagePath: "", pagesList: [], savedThumbnails: [], showedThumbnails: [] });
       }
     });
     window.electron.ipcRenderer.sendMessage('get-album-images', [
@@ -181,7 +190,7 @@ class ImageViewer extends React.Component<ImageViewerProps, ImageViewerState> {
     ]);
   }
 
-  moveToPage(pageId: number) {
+  moveToPage(pageId: string) {
     const pageNo: any = this.state.pagesList.findIndex((e: any) => e.id == pageId.toString())
 
     if(pageNo != -1) {

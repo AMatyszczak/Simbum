@@ -16,6 +16,7 @@ import fs from 'fs';
 import Store, { Schema } from 'electron-store';
 import { resolveHtmlPath } from './util';
 import { v4 as uuidv4 } from 'uuid';
+// import placeholder from 'img_placeholder.png';
 
 
 interface UserPreferences {
@@ -116,14 +117,18 @@ ipcMain.on('create-album', async (event, args) => {
   if (rootPath != null) {
     const newAlbumIndex = args[0];
     const newAlbumId = uuidv4();
+    const firstImageId = uuidv4()
+    const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
 
     const albumPath = createPathToAlbum(rootPath, newAlbumId);
+    const imagePath = createPathToImage(rootPath, newAlbumId, firstImageId);
     createPathIfNotExists(albumPath);
     createPathIfNotExists(path.join(albumPath, "images"));
 
     fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
     fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
-    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[]}))
+    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
+    fs.writeFileSync(imagePath, placeHolderImage)
     
     
     let albumsMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
