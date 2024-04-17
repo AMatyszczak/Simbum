@@ -209,11 +209,17 @@ body {
   border: none !important;
 }
 
-.settings-button {
+.button {
   background: transparent;
   border: unset;
+}
+
+.album-toolbar {
+  display: flex;
+  flex-flow: row;
+  flex-direction: row;
   position: absolute;
-  left: 0px;
+  left: 0px
 }
 
 .settings-icon {

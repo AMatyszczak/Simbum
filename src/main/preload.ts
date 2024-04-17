@@ -5,6 +5,7 @@ export type Channels =
   | 'album-description-changed'
   | 'page-image-changed'
   | 'page-image-added'
+  | 'page-image-deleted'
   | 'create-album'
   | 'settings-select-path'
   | 'electron-store-get'
