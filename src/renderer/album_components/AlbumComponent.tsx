@@ -73,6 +73,7 @@ export default class AlbumComponent extends React.Component<
   componentDidMount() {
     this.loadAlbums();
     // this.loadAlbumByIndex(0);
+    this.loadAlbumImages(true)
   }
 
   loadAlbums() {
@@ -127,6 +128,7 @@ export default class AlbumComponent extends React.Component<
 
   moveToAlbum(albumNo: number) {
     this.loadAlbumByIndex(albumNo)
+    this.loadAlbumImages(true)
   }
 
   createNewAlbum(index: number) {
@@ -136,6 +138,7 @@ export default class AlbumComponent extends React.Component<
       this.setState({albumsList: arg});
       console.log("createNewAlbum in once", index, arg)
       this.loadAlbumById(arg[index].id, index)
+      this.loadAlbumImages(true)
     })
     window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
@@ -170,7 +173,7 @@ export default class AlbumComponent extends React.Component<
 
       if(this.state.pageId != null) {
         window.electron.ipcRenderer.sendMessage('page-image-changed', [
-          this.props.albumId,
+          this.state.album.id,
           this.state.pageId,
           file.path,
         ]);
@@ -190,14 +193,13 @@ export default class AlbumComponent extends React.Component<
     this.setState({isDragging: false})
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
-      console.log("albumId", this.props)
       window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
         console.log('get-album-images')
         this.loadAlbumImages(false);
       }); 
       
       window.electron.ipcRenderer.sendMessage('page-image-added', [
-        this.props.albumId,
+        this.state.album.id,
         this.state.indexOfDraggedElement,
         file.path
       ])
@@ -292,7 +294,7 @@ export default class AlbumComponent extends React.Component<
       }
     });
     window.electron.ipcRenderer.sendMessage('get-album-images', [
-      this.props.albumId,
+      this.state.album.id,
     ]);
   }
 
@@ -319,14 +321,6 @@ export default class AlbumComponent extends React.Component<
           <SettingsButtonComponent onTrashClick={this.deleteCurrentPage} />
           <div className="album-content">
             <TitleEditor albumId={this.state.album.id} />
-            {/* <ImageViewer
-              albumId={this.state.album.id}
-              onNextAlbumClick={this.onNextAlbumClick}
-              onPrevAlbumClick={this.onPrevAlbumClick}
-              shouldDisableNextButton={this.isLastAlbumDisplayed}
-              shouldDisablePrevButton={this.isFirstAlbumDisplayed}
-            /> */}
-
             <div className='image-viewer-view'>        
               <div className="album-images-controller">
                 <button
@@ -337,7 +331,7 @@ export default class AlbumComponent extends React.Component<
                     src={this.determineNextButtonImg()}
                     className="button-image"
                     alt=""
-                    onClick={this.props.onNextAlbumClick}
+                    onClick={this.onNextAlbumClick}
                     draggable="false"
                   />
                 </button>
@@ -365,7 +359,7 @@ export default class AlbumComponent extends React.Component<
                     }
                     className="button-image"
                     alt=""
-                    onClick={this.props.onPrevAlbumClick}
+                    onClick={this.onPrevAlbumClick}
                     draggable="false"
                   />
 
