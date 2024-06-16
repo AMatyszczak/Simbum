@@ -2,7 +2,6 @@ import '../App.css';
 import 'react-quill/dist/quill.snow.css';
 import DescriptionEditor from '../album_components/DescriptionEditor';
 import TitleEditor from '../album_components/TitleEditor';
-import ImageViewer from '../album_components/ImageViewer';
 import SettingsButtonComponent from '../settings/SettingsButtonComponent';
 import button_right from '../../../assets/buttons/button_right.png';
 import button_right_plus from '../../../assets/buttons/button_right_plus.png';
@@ -72,36 +71,32 @@ export default class AlbumComponent extends React.Component<
 
   componentDidMount() {
     this.loadAlbums();
-    // this.loadAlbumByIndex(0);
-    this.loadAlbumImages(true)
   }
-
+  
   loadAlbums() {
-    console.log("loadAlbums")
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      console.log('get-album-map', arg)
       this.setState({albumsList: arg});
-      console.log("before loadAlbum", this.state.albumsList)
+      console.log("loadAlbums:", arg)
       this.loadAlbumById(arg[0].id, 0)
+      console.log("Event, get-album-map, albumsList:", arg)
     })
     window.electron.ipcRenderer.sendMessage('get-album-map', []);
   }
 
-  loadAlbumById(id: number, pageNo: number) {
-    console.log("loadAlbumById", id, this.state.albumsList)
+  loadAlbumById(id: string, pageNo: number) {
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
-      console.log('get-album', arg) 
-      
+      console.log("loadAlbumById:", id)
       this.setState({album: arg, pagesLoaded: true, pageNo: pageNo, albumNo: pageNo});
+      this.loadAlbumImages(id, true)
     });
     window.electron.ipcRenderer.sendMessage('get-album', [id]);  
   }
 
   loadAlbumByIndex(index: number) {
-    console.log("loadAlbumByIndex", index, this.state.albumsList, this.state.albumsList[index])
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
-      console.log('get-album', arg)  
+      console.log("loadAlbumByIndex get-album, index:", index, "arg:", arg)
       this.setState({album: arg, pagesLoaded: true, pageNo: 0, albumNo: index});
+      this.loadAlbumImages(arg.id, true)
     });
     window.electron.ipcRenderer.sendMessage('get-album', [
       this.state.albumsList[index].id,
@@ -109,36 +104,26 @@ export default class AlbumComponent extends React.Component<
   }
 
   onNextAlbumClick() {
-    console.log("onNextAlbumClick: ", this.state.albumNo, "<-")
     if (this.isLastAlbumDisplayed()) {
       this.createNewAlbum(this.state.albumNo + 1);
     } else {
-      this.moveToAlbum(this.state.albumNo + 1);
+      this.loadAlbumByIndex(this.state.albumNo + 1);
     }
   }
 
   onPrevAlbumClick() {
-    console.log("onPrevAlbumClick", this.state.albumNo)
     if (this.isFirstAlbumDisplayed()) {
       this.createNewAlbum(this.state.albumNo);
     } else {
-      this.moveToAlbum(this.state.albumNo - 1);
+      this.loadAlbumByIndex(this.state.albumNo - 1);
     }
   }
 
-  moveToAlbum(albumNo: number) {
-    this.loadAlbumByIndex(albumNo)
-    this.loadAlbumImages(true)
-  }
-
   createNewAlbum(index: number) {
-    console.log("createNewAlbum", index, this.state.albumNo)
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      console.log("createNewAlbum get-album-map:", arg)
       this.setState({albumsList: arg});
-      console.log("createNewAlbum in once", index, arg)
       this.loadAlbumById(arg[index].id, index)
-      this.loadAlbumImages(true)
+      this.loadAlbumImages(arg[index].id, true)
     })
     window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
@@ -152,11 +137,11 @@ export default class AlbumComponent extends React.Component<
   }
 
   private deleteCurrentPage(): any {
-    
-    if(this.state.album.imagesIds.length > 1) {
-      window.electron.ipcRenderer.sendMessage('page-image-deleted', [this.state.pageNo]);
-      
-    
+    console.log("deleteCurrentPage click: length:", this.state.pagesList.length)
+    if(this.state.pagesList.length >= 1) {
+      console.log("deleteCurrentPage albumId:", this.state.album.id, "pageId:", this.state.pageId)
+      window.electron.ipcRenderer.sendMessage('page-image-deleted', [this.state.album.id, this.state.pageId]);
+      this.loadAlbumImages(this.state.album.id, true)
     }
 
   }
@@ -179,7 +164,7 @@ export default class AlbumComponent extends React.Component<
         ]);
       }
       
-      this.loadAlbumImages(false);
+      this.loadAlbumImages(this.state.album.id, false);
     }
     e.stopPropagation()
   }
@@ -194,8 +179,7 @@ export default class AlbumComponent extends React.Component<
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-        console.log('get-album-images')
-        this.loadAlbumImages(false);
+        this.loadAlbumImages(this.state.album.id, false);
       }); 
       
       window.electron.ipcRenderer.sendMessage('page-image-added', [
@@ -279,10 +263,10 @@ export default class AlbumComponent extends React.Component<
     e.stopPropagation();
   }
 
-  private loadAlbumImages(showFirstPage: boolean) {
+  private loadAlbumImages(albumId: string, showFirstPage: boolean) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
+      console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
-      console.log("loadAlbumImages:", thumbnails)
       if(thumbnails.length >0) {
         if(showFirstPage === true) {
           this.setState({imageHash: Date.now(), pageId: thumbnails[0].id, currentImagePath: thumbnails[0].path, pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
@@ -294,7 +278,7 @@ export default class AlbumComponent extends React.Component<
       }
     });
     window.electron.ipcRenderer.sendMessage('get-album-images', [
-      this.state.album.id,
+      albumId,
     ]);
   }
 
@@ -307,10 +291,6 @@ export default class AlbumComponent extends React.Component<
         currentImagePath: this.state.pagesList[pageNo].path
       });
     }
-  }
-
-  private determineNextButtonImg() {
-    return this.isLastAlbumDisplayed() ? button_left_plus : button_left
   }
 
   render() {
@@ -328,7 +308,7 @@ export default class AlbumComponent extends React.Component<
                   type="button"
                 >
                   <img
-                    src={this.determineNextButtonImg()}
+                    src={this.isLastAlbumDisplayed() ? button_left_plus : button_left}
                     className="button-image"
                     alt=""
                     onClick={this.onNextAlbumClick}
@@ -353,7 +333,7 @@ export default class AlbumComponent extends React.Component<
                 >
                   <img
                     src={
-                      this.isLastAlbumDisplayed()
+                      this.isFirstAlbumDisplayed()
                         ? button_right_plus
                         : button_right
                     }

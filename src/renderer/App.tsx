@@ -21,16 +21,23 @@ class Simbum extends React.Component<any, SimbumState> {
 
   componentDidMount(): void {
     const isDataPath = window.electron.store.get('dataPath') != null;
+    console.log("isComponentMounted:", this.state.isComponentMounted, "isDataPath:", this.state.isDataPath, "dataPath:", window.electron.store.get('dataPath'))
     this.setState({ isComponentMounted: true, isDataPath: isDataPath });
   }
 
   render() {
-    if (!this.state.isComponentMounted) {
-      return <LoadingComponent />;
-    }
+
+    console.log("App.tsx:", this.state)
     if (!this.state.isDataPath) {
+      console.log("App.tsx, render returns SettingsComponent")
       return <SettingsComponent isPathToUserFilesSet={this.state.isDataPath}/>;
     }
+    if (!this.state.isComponentMounted) {
+      console.log("App.tsx, render returns LoadingComponent")
+      return <LoadingComponent />;
+    }
+
+    console.log("App.tsx, render returns AlbumComponentt")
     return <AlbumComponent />;
   }
 }

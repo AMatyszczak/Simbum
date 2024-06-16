@@ -26,12 +26,14 @@ class SettingsComponent extends React.Component<SettingsComponentProps, Settings
 
   selectPath = () => {
     window.electron.ipcRenderer.once('settings-select-path', (arg: any) => {
+      console.log("selectPath once event:", arg)
       this.setState({ pathToUserFiles: arg, newPathSet: true});
     });
     window.electron.ipcRenderer.sendMessage('settings-select-path', []);
   }
 
   isPathToDataSet() {
+    console.log("iisPathToDataSet:", this.props)
     return this.props.isPathToUserFilesSet || this.state.pathToUserFiles
   }
 

@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, dialog, ipcRenderer } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import fs from 'fs';
@@ -65,7 +65,23 @@ ipcMain.on('page-image-changed', async (event, args) => {
     const albumId = args[0];
     const imageId = args[1];
     const file = fs.readFileSync(args[2]);
+
+    const albumPath = createPathToAlbum(rootPath, albumId);
     const imagePath = createPathToImage(rootPath, albumId, imageId);
+
+    const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
+    const imagesMap = JSON.parse(imagesMapFile.toString())
+    const index = imagesMap["images"].findIndex((imgJson: {id: string; filename: string }) => imgJson.id == imageId, 0)
+
+    if(index == -1) {
+      console.log("page-image-changed added missing image file")
+      imagesMap["images"].splice(0, 0, {
+        "id": imageId,
+        "filename": imageId + ".png"
+      })
+      fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify(imagesMap))
+
+    }
 
     console.log("page-image-changed", rootPath, albumId, imageId)
     fs.writeFileSync(imagePath, file);
@@ -83,6 +99,33 @@ ipcMain.on('album-title-changed', async (event, args) => {
   }
 });
 
+ipcMain.on('page-image-deleted', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const albumId = args[0];
+    const imageId = args[1];
+    
+    const albumPath = createPathToAlbum(rootPath, albumId);
+    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    
+    const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
+    const imagesMap = JSON.parse(imagesMapFile.toString())
+    const index = imagesMap["images"].findIndex((imgJson: { id: string; filename: string }) => imgJson.id === imageId, 0)
+
+    if (index > -1) {
+      if (imagesMap["images"].length == 1) {
+        console.log("Replacing imageId:", imageId, "with placeholder")
+        const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
+        fs.writeFileSync(imagePath, placeHolderImage)
+      } else {
+        imagesMap["images"].splice(index, 1);
+        fs.unlinkSync(imagePath)
+        fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify(imagesMap))
+      }
+    }
+  }
+});
+
 ipcMain.on('page-image-added', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
@@ -94,18 +137,18 @@ ipcMain.on('page-image-added', async (event, args) => {
     const imagePath = createPathToImage(rootPath, albumId, imageId);
     fs.writeFileSync(imagePath, file);
     
-    const contentPath = createPathToAlbum(rootPath, albumId)
-    let imagesMapFile = fs.readFileSync(path.join(contentPath, "images_map.json"))
+    const albumPath = createPathToAlbum(rootPath, albumId)
+    let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     let imagesMap = JSON.parse(imagesMapFile.toString())
     imagesMap["images"].splice(indexOfImage, 0, {
       "id": imageId,
       "filename": imageId + ".png"
     })
 
-    fs.writeFileSync(path.join(contentPath, "images_map.json"), JSON.stringify(imagesMap))
+    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify(imagesMap))
     
     imagesMap["images"].forEach((element: any) => {
-      element["path"] = "file://" + path.join(contentPath, "images", element.filename)
+      element["path"] = "file://" + path.join(albumPath, "images", element.filename)
     });
 
     event.reply('get-album-images', imagesMap["images"])
@@ -166,10 +209,13 @@ ipcMain.on('get-albums', async (event, arg) => {
 ipcMain.on('get-album-map', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
-    let albumMap = JSON.parse(albumMapFile.toString())
-
-    event.reply('get-album-map', albumMap["albums"])
+    const albumMapFilePath = path.join(rootPath, "album_map.json")
+    if(fs.existsSync(albumMapFilePath)) {
+      let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      let albumMap = JSON.parse(albumMapFile.toString())
+  
+      event.reply('get-album-map', albumMap["albums"])
+    }
   }
 })
 
@@ -227,7 +273,6 @@ ipcMain.on('get-album', async (event, args) => {
     if (albumId == null) {
       event.reply('get-album', null);
     } else {
-      console.log("albumId:", albumId, rootPath)
       const albumPath = createPathToAlbum(rootPath, albumId);
       const albumExists = fs.existsSync(albumPath);
       if (!albumExists) {
@@ -262,21 +307,26 @@ ipcMain.on('get-album-images', async (event, args) => {
     const contentName = args[0]
  
     const contentPath = createPathToAlbum(rootPath, contentName)
-    let imagesMapFile = fs.readFileSync(path.join(contentPath, "images_map.json"))
-    let imagesMap = JSON.parse(imagesMapFile.toString())
-    
-    imagesMap["images"].forEach((element: any) => {
-      element["path"] = "file://" + path.join(contentPath, "images", element.filename)
-    });
+    const imagesMapFilePath = path.join(contentPath, "images_map.json")
+    if(fs.existsSync(imagesMapFilePath)) {
 
-    event.reply('get-album-images', imagesMap["images"])
+      let imagesMapFile = fs.readFileSync(imagesMapFilePath)
+      let imagesMap = JSON.parse(imagesMapFile.toString())
+      
+      imagesMap["images"].forEach((element: any) => {
+        element["path"] = "file://" + path.join(contentPath, "images", element.filename)
+      });
+  
+      event.reply('get-album-images', imagesMap["images"])
+    }
   }
+
+  // ipcMain.on('is-')
 
   // const rootPath: string = store.get('dataPath');
   // if (rootPath != null) {
     // const albumId = args[0]
-    // if (albumId == null) {
-      // event.reply('get-album-images', null);
+    // if (albumId == null)  event.reply('get-album-images', null);
     // } else {
       // const albumPath = createPathToAlbum(rootPath, albumId);
       // const albumExists = fs.existsSync(albumPath);
@@ -321,11 +371,40 @@ ipcMain.on('settings-select-path', async (event, args) => {
       await dialog.showOpenDialog(mainWindow, {
         properties: ['openDirectory'],
       });
-    let path = dirPathReturnValue.filePaths[0];
-    store.set('dataPath', path);
-    event.reply('settings-select-path', path)
-    loadFileTree();
+    let rootPath = dirPathReturnValue.filePaths[0];
+    console.log("settings-select-path:", rootPath) 
+    console.log("settings-select-path:", doesAlbumFolderExists(rootPath), doesAlbumMapExists(rootPath))
+    if(!doesAlbumFolderExists(rootPath) && !doesAlbumMapExists(rootPath)) {
+      console.log("does Album")
+      const newAlbumIndex = 0;
+      const newAlbumId = uuidv4();
+      const firstImageId = uuidv4()
+      const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
+
+      const albumPath = createPathToAlbum(rootPath, newAlbumId);
+      const imagePath = createPathToImage(rootPath, newAlbumId, firstImageId);
+      createPathIfNotExists(albumPath);
+      createPathIfNotExists(path.join(albumPath, "images"));
+      console.log("createPathIfNotExists")
+      fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
+      fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
+      fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
+      fs.writeFileSync(imagePath, placeHolderImage)
+      
+      // let albumsMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      // let albumsMap = JSON.parse([{"id": newAlbumId.toString()}]);
+      // albumsMap["albums"].splice(newAlbumIndex, 0, {
+      //   "id": newAlbumId
+      // })
+      
+      fs.writeFileSync(path.join(rootPath, "album_map.json"), JSON.stringify({"albums":[{"id": newAlbumId.toString()}]})) 
+    }
+
+    console.log('settings-select-path.')
+    store.set('dataPath', rootPath);
+    event.reply('settings-select-path', rootPath)
   }
+  loadFileTree();
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -353,11 +432,30 @@ const installExtensions = async () => {
     .catch(console.log);
 };
 
+
+const doesAlbumMapExists = (dirPath: string) => {
+  const albumMapPath = path.join(dirPath, "album_map.json")
+  return fs.existsSync(albumMapPath)
+}
+
+const doesAlbumFolderExists = (dirPath: string) => {
+  const albumFolderPath = path.join(dirPath, "albums")
+  return fs.existsSync(albumFolderPath)
+}
+
+
 const loadFileTree = async () => {
   const dataPath: string = store.get('dataPath');
+  console.log("loadFileTree:", dataPath)
   if (dataPath != null) {
-    const files = fs.readdirSync(dataPath, {});
-    store.set('pagesList', files);
+    if(doesAlbumFolderExists(dataPath) && doesAlbumMapExists(dataPath)) {
+      console.log("loadFileTree", "doesAlbumFolderExists", doesAlbumFolderExists(dataPath), "doesAlbumMapExists", doesAlbumMapExists(dataPath))
+      const files = fs.readdirSync(dataPath, {});
+      store.set('pagesList', files);
+    } else {
+      store.clear()
+      console.log(store.get('rootPath'), "||||", store.get('dataPath'))
+    }
   }
 };
 
