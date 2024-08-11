@@ -220,6 +220,30 @@ ipcMain.on('get-album-map', async (event, arg) => {
 })
 
 
+ipcMain.on('get-album-gallery-data', async (event, arg) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const albumMapFilePath = path.join(rootPath, "album_map.json")
+    if(fs.existsSync(albumMapFilePath)) {
+      let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      let albumMap = JSON.parse(albumMapFile.toString())
+      let albumGalleryData: {albumId: string, albumTitle: string, albumDescription: string, imagePath: string}[] = []
+      albumMap['albums'].forEach((albumId: any) => {
+        let albumPath = createPathToAlbum(rootPath, albumId['id'])
+        let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"));
+        let imagesMap = JSON.parse(imagesMapFile.toString())
+        let imageId = imagesMap["images"][0]['id']
+        let albumTitle = fs.readFileSync(path.join(albumPath, "title.txt")).toString();
+        let albumDescription = fs.readFileSync(path.join(albumPath, "description.txt")).toString();
+    
+        albumGalleryData.push({"albumId": albumId['id'], albumTitle: albumTitle, albumDescription: albumDescription, imagePath: createPathToImage(rootPath, albumId['id'], imageId)})
+      });
+      event.reply('get-album-gallery-data', albumGalleryData)
+    }
+  }
+})
+
+
 ipcMain.on('get-album-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {

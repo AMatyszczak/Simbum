@@ -5,6 +5,7 @@ import SettingsComponent from './settings/SettingsComponent';
 import React from 'react';
 import AlbumComponent from './album_components/AlbumComponent';
 import LoadingComponent from './loading_component/LoadingComponent';
+import AlbumGalleryComponent from './album_components/AlbumGalleryComponent';
 
 interface SimbumState {
   isComponentMounted: boolean;
@@ -26,7 +27,7 @@ class Simbum extends React.Component<any, SimbumState> {
   }
 
   render() {
-
+    return <AlbumGalleryComponent />
     console.log("App.tsx:", this.state)
     if (!this.state.isDataPath) {
       console.log("App.tsx, render returns SettingsComponent")
@@ -48,6 +49,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Simbum />} />
         <Route path="/album" element={<AlbumComponent />} />
+        <Route path="/albumGallery" element={<AlbumGalleryComponent />} />
         <Route path="/settings" element={<SettingsComponent isPathToUserFilesSet={false}/>} />
       </Routes>
     </Router>
