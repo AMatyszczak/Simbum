@@ -4,6 +4,7 @@ import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useEffect, useState } from 'react';
+import { Box, Button } from '@mui/material';
 
 
 const Img = styled('img')({
@@ -23,16 +24,66 @@ export default function AlbumGalleryComponent() {
         })
 
         window.electron.ipcRenderer.sendMessage('get-album-gallery-data', []);
-    }, []) 
+    }, [])
 
-  return (
-    <Grid container >
-        {
-        galleryData.map((data: any) => (
-            <Paper
+    function onAlbumClick(e:any, albumData: any){
+        console.log("onAlbumClick", e, albumData)
+    }
+
+    function onAlbumRemoveClick(e: any, albumData: any) {
+        console.log("onAlbumRemoveClick", e, albumData)
+        e.stopPropagation (); 
+    }
+
+
+    return (
+        <Grid container >
+            {
+            galleryData.map((data: any) => (
+                <ButtonBase sx={{margin: 2, maxWidth: 500, flexGrow: 1}}>
+                    <Paper
+                    onClick={(e) => onAlbumClick(e, data)}
+                    sx={{
+                        cursor: 'pointer',
+                        p: 2,
+                        flexGrow: 1,
+                        backgroundColor: (theme) =>
+                        theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+                    }}
+                    >
+                        <Grid container spacing={1}>
+                            <Grid item>
+                                <Box display="flex" sx={{ width: 128, height: 128 }} >
+                                    <Img alt="complex" src={"file://" + data["imagePath"]} />
+                                </Box>
+                            </Grid>
+                            <Grid item xs={12} sm container>
+                                <Grid item xs container direction="column" spacing={2}>
+                                    <Grid item xs>
+                                        <Typography gutterBottom variant="subtitle1" component="div">
+                                            {data["albumTitle"]}
+                                        </Typography>
+                                        <Typography variant="body2" gutterBottom>
+                                            {data["albumDescription"]}
+                                        </Typography>
+                                    </Grid>
+                                    <ButtonBase>
+                                        <Grid item>
+                                            <Typography  variant="body2" onMouseDown={(e) => onAlbumRemoveClick(e, data)}>
+                                                Remove
+                                            </Typography>
+                                        </Grid>
+                                    </ButtonBase>
+                                </Grid>
+                        </Grid> 
+                        </Grid>
+                    </Paper>
+                </ButtonBase>
+            ))}
+            {/* <Paper
             sx={{
                 p: 2,
-                margin: 2,
+                margin: 'auto',
                 maxWidth: 500,
                 flexGrow: 1,
                 backgroundColor: (theme) =>
@@ -42,74 +93,37 @@ export default function AlbumGalleryComponent() {
                 <Grid container spacing={2}>
                     <Grid item>
                     <ButtonBase sx={{ width: 128, height: 128 }}>
-                        <Img alt="complex" src={"file://" + data["imagePath"]} />
+                        <Img alt="complex" src="/static/images/grid/complex.jpg" />
                     </ButtonBase>
                     </Grid>
                     <Grid item xs={12} sm container>
-                        <Grid item xs container direction="column" spacing={2}>
-                            <Grid item xs>
-                                <Typography gutterBottom variant="subtitle1" component="div">
-                                    {data["albumTitle"]}
-                                </Typography>
-                                <Typography variant="body2" gutterBottom>
-                                    {data["albumDescription"]}
-                                </Typography>
-                            </Grid>
-                            <Grid item>
-                                <Typography sx={{ cursor: 'pointer' }} variant="body2">
-                                    Remove
-                                </Typography>
-                            </Grid>
+                    <Grid item xs container direction="column" spacing={2}>
+                        <Grid item xs>
+                        <Typography gutterBottom variant="subtitle1" component="div">
+                            Standard license
+                        </Typography>
+                        <Typography variant="body2" gutterBottom>
+                            Full resolution 1920x1080 • JPEG
+                        </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                            ID: 1030114
+                        </Typography>
                         </Grid>
-                </Grid> 
-                </Grid>
-            </Paper>
-            
-        ))}
-        {/* <Paper
-        sx={{
-            p: 2,
-            margin: 'auto',
-            maxWidth: 500,
-            flexGrow: 1,
-            backgroundColor: (theme) =>
-            theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-        }}
-        >
-            <Grid container spacing={2}>
-                <Grid item>
-                <ButtonBase sx={{ width: 128, height: 128 }}>
-                    <Img alt="complex" src="/static/images/grid/complex.jpg" />
-                </ButtonBase>
-                </Grid>
-                <Grid item xs={12} sm container>
-                <Grid item xs container direction="column" spacing={2}>
-                    <Grid item xs>
-                    <Typography gutterBottom variant="subtitle1" component="div">
-                        Standard license
-                    </Typography>
-                    <Typography variant="body2" gutterBottom>
-                        Full resolution 1920x1080 • JPEG
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                        ID: 1030114
-                    </Typography>
+                        <Grid item>
+                        <Typography sx={{ cursor: 'pointer' }} variant="body2">
+                            Remove
+                        </Typography>
+                        </Grid>
                     </Grid>
                     <Grid item>
-                    <Typography sx={{ cursor: 'pointer' }} variant="body2">
-                        Remove
-                    </Typography>
+                        <Typography variant="subtitle1" component="div">
+                        $19.00
+                        </Typography>
+                    </Grid>
                     </Grid>
                 </Grid>
-                <Grid item>
-                    <Typography variant="subtitle1" component="div">
-                    $19.00
-                    </Typography>
-                </Grid>
-                </Grid>
-            </Grid>
-        </Paper>
-        */}
-    </Grid>
-  );
+            </Paper>
+            */}
+        </Grid>
+    );
 }
