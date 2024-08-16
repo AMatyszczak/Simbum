@@ -5,6 +5,7 @@ import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useEffect, useState } from 'react';
 import { Box, Button } from '@mui/material';
+import { Link, useNavigate } from 'react-router-dom';
 
 
 const Img = styled('img')({
@@ -15,6 +16,7 @@ const Img = styled('img')({
 });
 
 export default function AlbumGalleryComponent() {
+    const navigate = useNavigate();
     const [galleryData, setGalleryData] = useState([])
 
     useEffect(() => {
@@ -28,6 +30,8 @@ export default function AlbumGalleryComponent() {
 
     function onAlbumClick(e:any, albumData: any){
         console.log("onAlbumClick", e, albumData)
+        navigate("/album", {state:{album: albumData}} )        
+
     }
 
     function onAlbumRemoveClick(e: any, albumData: any) {
@@ -40,21 +44,37 @@ export default function AlbumGalleryComponent() {
         <Grid container >
             {
             galleryData.map((data: any) => (
-                <ButtonBase sx={{margin: 2, maxWidth: 500, flexGrow: 1}}>
+                <ButtonBase sx={{margin: 2, maxWidth: 500, flexGrow: 1}}
+                        onClick={(e) => onAlbumClick(e, data)}
+                >
                     <Paper
-                    onClick={(e) => onAlbumClick(e, data)}
-                    sx={{
-                        cursor: 'pointer',
-                        p: 2,
-                        flexGrow: 1,
-                        backgroundColor: (theme) =>
-                        theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-                    }}
-                    >
+
+                        sx={{
+                            cursor: 'pointer',
+                            p: 2,
+                            flexGrow: 1,
+                            backgroundColor: (theme) =>
+                            theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
+                        }}
+                        >
                         <Grid container spacing={1}>
                             <Grid item>
                                 <Box display="flex" sx={{ width: 128, height: 128 }} >
-                                    <Img alt="complex" src={"file://" + data["imagePath"]} />
+                                    <Img alt="complex" src={"file://" + data["imagePath"]} /> tom 1 rodzina noobw
+                                </Box>
+
+                                <Box display="flex" sx={{ width: 32, height: 32 }} >
+                                    <Img alt="complex" src={"file://" + data["imagePath"]} /> nooby sie rodza
+                                </Box>
+
+
+                                <Box display="flex" sx={{ width: 32, height: 32 }} >
+                                    <Img alt="complex" src={"file://" + data["imagePath"]} /> noby sie bawią
+                                </Box>
+
+
+                                <Box display="flex" sx={{ width: 32, height: 32 }} >
+                                    <Img alt="complex" src={"file://" + data["imagePath"]} /> noby sie umierają 
                                 </Box>
                             </Grid>
                             <Grid item xs={12} sm container>

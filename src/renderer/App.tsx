@@ -27,7 +27,9 @@ class Simbum extends React.Component<any, SimbumState> {
   }
 
   render() {
-    return <AlbumGalleryComponent />
+  
+    console.log("App.tsx render()")
+  
     console.log("App.tsx:", this.state)
     if (!this.state.isDataPath) {
       console.log("App.tsx, render returns SettingsComponent")
@@ -37,9 +39,10 @@ class Simbum extends React.Component<any, SimbumState> {
       console.log("App.tsx, render returns LoadingComponent")
       return <LoadingComponent />;
     }
-
+   
     console.log("App.tsx, render returns AlbumComponentt")
-    return <AlbumComponent />;
+    return <AlbumGalleryComponent />
+    // return <AlbumComponent />;
   }
 }
 

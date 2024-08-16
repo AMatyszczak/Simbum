@@ -9,7 +9,8 @@ import button_left from '../../../assets/buttons/button_left.png';
 import button_left_plus from '../../../assets/buttons/button_left_plus.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import 'react-quill/dist/quill.snow.css';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Link, Location, useLocation } from 'react-router-dom';
 
 
 type Album = {
@@ -18,173 +19,176 @@ type Album = {
   imagesIds: string[]
 }
 
-interface AlbumComponentState {
-  albumsList: {id: string}[];
-  albumNo: number;
-  pagesLoaded: boolean;
-  pageNo: number;
-  pageId: string;
-  album: Album;
 
-  pagesList: {id: string, filename: string, path: string}[];
-  imageHash: number;
-  currentImagePath: string;
-  nextImagePath: string;
-  savedThumbnails: {path: string, filename: string, id: string}[];
-  showedThumbnails: {path: string, filename: string, id: string}[];
-  draggedElement: {path: string, filename: string, id: string};
-  isDragging: boolean;
-  indexOfDraggedElement: number
+type LocationState = {
+  state: {
+    album: {
+      albumId: string;
+      albumTitle: string;
+      albumDescription: string;
+      imagePath: string;
+    };
+  }
 }
 
-export default class AlbumComponent extends React.Component<
-  any,
-  AlbumComponentState
-> {
-  constructor(props: any) {
-    super(props);
-    this.state = {
-      albumsList: [],
-      albumNo: 0,
-      pagesLoaded: false,
-      pageNo: 0,
-      pageId: '0',
-      album: {id: "0", no: 0, imagesIds: []},
-      
-      pagesList: [],
-      imageHash: Date.now(),
-      currentImagePath: '',
-      nextImagePath: '',
-      savedThumbnails: [],
-      showedThumbnails: [],
-      draggedElement: {path: '', filename: '', id: ''},
-      isDragging: false,
-      indexOfDraggedElement: -1
-    };
+export default function AlbumComponent() {
+  // constructor(props: any) {
+    const [albumsList, setAlbumsList] = useState<{id: string}[]>([])
+    const [albumNo, setAlbumNo] = useState<number>(0)
+    const [pagesLoaded, setPagesLoaded] = useState<boolean>(false)
+    const [pageNo, setPageNo] = useState<number>(0)
+    const [pageId, setPageId] = useState<string>('0')
+    const [album, setAlbum] = useState<Album>({id: "0", no: 0, imagesIds: []})
+    const [pagesList, setPagesList] = useState<{id: string, filename: string, path: string}[]>([])
+    const [imageHash, setImageHash] = useState(Date.now())
+    const [currentImagePath, setCurrentImagePath] = useState('')
+    const [savedThumbnails, setSavedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
+    const [showedThumbnails, setShowedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
+    const [draggedElement, setDraggedElement] = useState<{path: string, filename: string, id: string}>({path: '', filename: '', id: ''})
+    const [isDragging, setIsDrawing] = useState(false)
+    const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
+    
+    const location = useLocation() as LocationState;
 
-    this.onNextAlbumClick = this.onNextAlbumClick.bind(this);
-    this.onPrevAlbumClick = this.onPrevAlbumClick.bind(this);
-    this.isLastAlbumDisplayed = this.isLastAlbumDisplayed.bind(this);
-    this.isFirstAlbumDisplayed = this.isFirstAlbumDisplayed.bind(this);
-    this.deleteCurrentPage = this.deleteCurrentPage.bind(this);
-  }
+    console.log("location:", location)
+    // onNextAlbumClick = onNextAlbumClick.bind(;
+    // onPrevAlbumClick = onPrevAlbumClick.bind(;
+    // isLastAlbumDisplayed = isLastAlbumDisplayed.bind(;
+    // isFirstAlbumDisplayed = isFirstAlbumDisplayed.bind(;
+    // deleteCurrentPage = deleteCurrentPage.bind(;
+  // }
 
-  componentDidMount() {
-    this.loadAlbums();
-  }
+  useEffect(() => {
+    loadAlbums();
+
+  }, [])
   
-  loadAlbums() {
+
+  function loadAlbums() {
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      this.setState({albumsList: arg});
+      setAlbumsList(arg);
       console.log("loadAlbums:", arg)
-      this.loadAlbumById(arg[0].id, 0)
+      if(location.state != null) {
+        console.log("loadAlbums, location.state:", location.state.album.albumId)
+        loadAlbumById(location.state.album.albumId, 0)
+      } else {
+        loadAlbumById(arg[0].id, 0)
+      }
       console.log("Event, get-album-map, albumsList:", arg)
     })
     window.electron.ipcRenderer.sendMessage('get-album-map', []);
   }
 
-  loadAlbumById(id: string, pageNo: number) {
+  function loadAlbumById(id: string, pageNo: number) {
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
       console.log("loadAlbumById:", id)
-      this.setState({album: arg, pagesLoaded: true, pageNo: pageNo, albumNo: pageNo});
-      this.loadAlbumImages(id, true)
+      setAlbum(album)
+      setPagesLoaded(true)
+      setPageNo(pageNo)
+      setAlbumNo(pageNo)
+      loadAlbumImages(id, true)
     });
     window.electron.ipcRenderer.sendMessage('get-album', [id]);  
   }
 
-  loadAlbumByIndex(index: number) {
+  function loadAlbumByIndex(index: number) {
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
       console.log("loadAlbumByIndex get-album, index:", index, "arg:", arg)
-      this.setState({album: arg, pagesLoaded: true, pageNo: 0, albumNo: index});
-      this.loadAlbumImages(arg.id, true)
+      
+      setAlbum(arg) 
+      setPagesLoaded(true)
+      setPageNo(pageNo)
+      setAlbumNo(index)
+      loadAlbumImages(arg.id, true)
     });
-    window.electron.ipcRenderer.sendMessage('get-album', [
-      this.state.albumsList[index].id,
-    ]);  
+    window.electron.ipcRenderer.sendMessage('get-album', [albumsList[index].id]);  
   }
 
-  onNextAlbumClick() {
-    if (this.isLastAlbumDisplayed()) {
-      this.createNewAlbum(this.state.albumNo + 1);
+  function onNextAlbumClick() {
+    if (isLastAlbumDisplayed()) {
+      createNewAlbum(albumNo + 1);
     } else {
-      this.loadAlbumByIndex(this.state.albumNo + 1);
+      loadAlbumByIndex(albumNo + 1);
     }
   }
 
-  onPrevAlbumClick() {
-    if (this.isFirstAlbumDisplayed()) {
-      this.createNewAlbum(this.state.albumNo);
+  function onPrevAlbumClick() {
+    if (isFirstAlbumDisplayed()) {
+      createNewAlbum(albumNo);
     } else {
-      this.loadAlbumByIndex(this.state.albumNo - 1);
+      loadAlbumByIndex(albumNo - 1);
     }
   }
 
-  createNewAlbum(index: number) {
+  function createNewAlbum(index: number) {
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      this.setState({albumsList: arg});
-      this.loadAlbumById(arg[index].id, index)
-      this.loadAlbumImages(arg[index].id, true)
+      setAlbumsList(arg);
+      loadAlbumById(arg[index].id, index)
+      loadAlbumImages(arg[index].id, true)
     })
     window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
 
-  private isLastAlbumDisplayed(): boolean {
-    return this.state.albumsList.length - 1 <= this.state.albumNo
+  function isLastAlbumDisplayed(): boolean {
+    console.log("isLastAlbumDisplated:", albumsList.length - 1, albumNo)
+    return albumsList.length - 1 <= albumNo
   }
 
-  private isFirstAlbumDisplayed(): boolean {
-    return this.state.albumNo <= 0 
+  function isFirstAlbumDisplayed(): boolean {
+    console.log("isFirstAlbumDisplayed", albumNo)
+    return albumNo <= 0 
   }
 
-  private deleteCurrentPage(): any {
-    console.log("deleteCurrentPage click: length:", this.state.pagesList.length)
-    if(this.state.pagesList.length >= 1) {
-      console.log("deleteCurrentPage albumId:", this.state.album.id, "pageId:", this.state.pageId)
-      window.electron.ipcRenderer.sendMessage('page-image-deleted', [this.state.album.id, this.state.pageId]);
-      this.loadAlbumImages(this.state.album.id, true)
+  function deleteCurrentPage(): any {
+    console.log("deleteCurrentPage click: length:", pagesList.length)
+    if(pagesList.length >= 1) {
+      console.log("deleteCurrentPage albumId:", album.id, "pageId:", pageId)
+      window.electron.ipcRenderer.sendMessage('page-image-deleted', [album.id, pageId]);
+      loadAlbumImages(album.id, true)
     }
 
   }
   
-  handleDropOnMainImage = (e: any) => {
+  function handleDropOnMainImage(e: any) {
     e.preventDefault()
     
-    this.setState({isDragging: false})
+    setIsDrawing(false)
     
     const file = e.dataTransfer.files.item(0);
 
     if (file.type.includes('image/')) {
-      this.setState({ currentImagePath: `file://${file.path}` });
+      setCurrentImagePath(`file://${file.path}`);
 
-      if(this.state.pageId != null) {
+      if(pageId != null) {
         window.electron.ipcRenderer.sendMessage('page-image-changed', [
-          this.state.album.id,
-          this.state.pageId,
+          album.id,
+          pageId,
           file.path,
         ]);
       }
       
-      this.loadAlbumImages(this.state.album.id, false);
+      loadAlbumImages(album.id, false);
     }
     e.stopPropagation()
   }
 
-  handleDropOnThumbnails = (e: any) => {
+  function handleDropOnThumbnails(e: any) {
     e.preventDefault()
     if(e.target.className == "album-image-thumbnail-container" || e.target.className == "album-image-thumbnail-list") {
-      this.setState({isDragging: false, showedThumbnails: [...this.state.savedThumbnails]})
+      setIsDrawing(false)
+      setShowedThumbnails([...savedThumbnails]) 
     }
 
-    this.setState({isDragging: false})
+    setIsDrawing(false)
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-        this.loadAlbumImages(this.state.album.id, false);
+        loadAlbumImages(album.id, false);
       }); 
       
       window.electron.ipcRenderer.sendMessage('page-image-added', [
-        this.state.album.id,
-        this.state.indexOfDraggedElement,
+        album.id,
+        indexOfDraggedElement,
         file.path
       ])
 
@@ -192,55 +196,61 @@ export default class AlbumComponent extends React.Component<
     e.stopPropagation();
   }; 
 
-  handleDragOver = (e: any) => {
+  function handleDragOver(e: any) {
     e.preventDefault();
 
-    if (this.state.isDragging) {
+    if (isDragging) {
       let parentElement: any = e.target.className == 'album-image-thumbnail-list' ? e.target : e.target.parentElement
 
-      const postionOfImageOnThumbnails = this.determinePositionOfImage(parentElement, e.clientX, false)
+      const postionOfImageOnThumbnails = determinePositionOfImage(parentElement, e.clientX, false)
 
-      if (this.state.indexOfDraggedElement !== postionOfImageOnThumbnails) {
-        const thumbs = [...this.state.savedThumbnails]
-        thumbs.splice(postionOfImageOnThumbnails, 0, this.state.draggedElement)
-        this.setState({showedThumbnails: thumbs, indexOfDraggedElement: postionOfImageOnThumbnails})
+      if (indexOfDraggedElement !== postionOfImageOnThumbnails) {
+        const thumbs = [...savedThumbnails]
+        thumbs.splice(postionOfImageOnThumbnails, 0, draggedElement)
+        setShowedThumbnails(thumbs)
+        setIndexOfDraggedElement(postionOfImageOnThumbnails)
       }
     }
 
     e.stopPropagation();
   };
 
-  handleLeave = (e: any) => {
+  function handleLeave(e: any) {
     e.preventDefault();
 
-    if(this.state.isDragging && e.relatedTarget.className != "album-image-thumbnail-container" && e.relatedTarget.className != "album-image-thumbnail-list") {
-      this.setState({isDragging: false})
-      this.setState({isDragging: false, showedThumbnails: [...this.state.savedThumbnails], indexOfDraggedElement: -1})
+    if(isDragging && e.relatedTarget.className != "album-image-thumbnail-container" && e.relatedTarget.className != "album-image-thumbnail-list") {
+      setIsDrawing(false)
+      setShowedThumbnails([...savedThumbnails])
+      setIndexOfDraggedElement(-1)
     }
 
     e.stopPropagation();
   };
 
-  handleDragEnter = (e: any) => {
+  function handleDragEnter(e: any) {
     e.preventDefault();
 
-    if (e.target.parentElement.className == "album-image-thumbnail-list" && !this.state.isDragging) {
-      const postionOfImageOnThumbnails = this.determinePositionOfImage(e.target.parentElement, e.clientX, false)
+    if (e.target.parentElement.className == "album-image-thumbnail-list" && !isDragging) {
+      const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientX, false)
       
-      let thumbs: {path: string, filename: string, id: string}[] = [...this.state.savedThumbnails]
+      let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
       let ele = {
         path: "file:///home/adrian/Desktop/SimBumStaff/img_placeholder.png",
         filename: "",
         id: "69",
       }
       thumbs.splice(postionOfImageOnThumbnails, 0, ele);
+      
+      setShowedThumbnails(thumbs)
+      setIsDrawing(true)
+      setIndexOfDraggedElement(postionOfImageOnThumbnails)
+      setDraggedElement(ele)
 
-      this.setState({ showedThumbnails: thumbs, isDragging: true, indexOfDraggedElement: postionOfImageOnThumbnails, draggedElement: ele});
       e.stopPropagation();
     }
   }
 
-  private determinePositionOfImage(parentElement: any, clientX: any, addImageWith: boolean) {
+  function determinePositionOfImage(parentElement: any, clientX: any, addImageWith: boolean) {
     let imageWidth = 120 + 8;
     let parentElementBoundRect = parentElement.getBoundingClientRect()
 
@@ -257,24 +267,36 @@ export default class AlbumComponent extends React.Component<
     return postionOfImage
   }
 
-  handleDragEnd = (e: any) => {
+  function handleDragEnd(e: any) {
     e.preventDefault();
-    this.setState({isDragging: false})
+    setIsDrawing(false)
     e.stopPropagation();
   }
 
-  private loadAlbumImages(albumId: string, showFirstPage: boolean) {
+  function loadAlbumImages(albumId: string, showFirstPage: boolean) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
       console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
+      console.log("loadAlbumImages, thumbnails:", thumbnails)
       if(thumbnails.length >0) {
         if(showFirstPage === true) {
-          this.setState({imageHash: Date.now(), pageId: thumbnails[0].id, currentImagePath: thumbnails[0].path, pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+          setImageHash(Date.now())
+          setPageId(thumbnails[0].id)
+          setCurrentImagePath(thumbnails[0].path)
+          setPagesList(thumbnails)
+          setSavedThumbnails(thumbnails)
+          setShowedThumbnails(thumbnails)
         } else {
-          this.setState({imageHash: Date.now(), pagesList: thumbnails, savedThumbnails: thumbnails, showedThumbnails: thumbnails });
+          setImageHash(Date.now())
+          setPagesList(thumbnails)
+          setSavedThumbnails(thumbnails)
+          setShowedThumbnails(thumbnails)
         }
       } else {
-          this.setState({currentImagePath: "", pagesList: [], savedThumbnails: [], showedThumbnails: [] });
+          setCurrentImagePath("")
+          setPagesList([])
+          setSavedThumbnails([])
+          setShowedThumbnails([])
       }
     });
     window.electron.ipcRenderer.sendMessage('get-album-images', [
@@ -282,94 +304,89 @@ export default class AlbumComponent extends React.Component<
     ]);
   }
 
-  moveToPage(pageId: string) {
-    const pageNo: any = this.state.pagesList.findIndex((e: any) => e.id == pageId.toString())
+  function moveToPage(pageId: string) {
+    const pageNo: any = pagesList.findIndex((e: any) => e.id == pageId.toString())
 
     if(pageNo != -1) {
-      this.setState({
-        pageId: this.state.pagesList[pageNo].id,
-        currentImagePath: this.state.pagesList[pageNo].path
-      });
+      setPageId(pagesList[pageNo].id)
+      setCurrentImagePath(pagesList[pageNo].path)
     }
   }
 
-  render() {
-    if (!this.state.pagesLoaded) {return <div className='loader'/>}
-    else
-      return (
-        <>
-          <SettingsButtonComponent onTrashClick={this.deleteCurrentPage} />
-          <div className="album-content">
-            <TitleEditor albumId={this.state.album.id} />
-            <div className='image-viewer-view'>        
-              <div className="album-images-controller">
-                <button
-                  className="next-album-image-button"
-                  type="button"
-                >
-                  <img
-                    src={this.isLastAlbumDisplayed() ? button_left_plus : button_left}
-                    className="button-image"
-                    alt=""
-                    onClick={this.onNextAlbumClick}
-                    draggable="false"
-                  />
-                </button>
-                <div
-                  className="album-image-container"
-                  onDrop={(e) => this.handleDropOnMainImage(e)}
-                  onDragOver={(e) => this.handleDragOver(e)}
-                >
-                  <img
-                    draggable="false"
-                    className="album-image"
-                    src={`${(this.state.currentImagePath || placeholder)}?${this.state.imageHash})`}
-                    alt=""
-                  />
-                </div>
-                <button
-                  className="prev-album-image-button"
-                  type="button"
-                >
-                  <img
-                    src={
-                      this.isFirstAlbumDisplayed()
-                        ? button_right_plus
-                        : button_right
-                    }
-                    className="button-image"
-                    alt=""
-                    onClick={this.onPrevAlbumClick}
-                    draggable="false"
-                  />
-
-                </button>
+  if (!pagesLoaded) {return <div className='loader'/>}
+  else
+    return (
+      <>
+        <SettingsButtonComponent onTrashClick={deleteCurrentPage} />
+        <div className="album-content">
+          <TitleEditor albumId={album.id} />
+          <div className='image-viewer-view'>        
+            <div className="album-images-controller">
+              <button
+                className="next-album-image-button"
+                type="button"
+              >
+                <img
+                  src={isLastAlbumDisplayed() ? button_left_plus : button_left}
+                  className="button-image"
+                  alt=""
+                  onClick={onNextAlbumClick}
+                  draggable="false"
+                />
+              </button>
+              <div
+                className="album-image-container"
+                onDrop={(e) => handleDropOnMainImage(e)}
+                onDragOver={(e) => handleDragOver(e)}
+              >
+                <img
+                  draggable="false"
+                  className="album-image"
+                  src={`${(currentImagePath || placeholder)}?${imageHash})`}
+                  alt=""
+                />
               </div>
-              <div className='album-image-thumbnail-list' 
-                onDragEnter={(e) => this.handleDragEnter(e)} 
-                onDragLeave={(e) => this.handleLeave(e)} 
-                onDragOver={(e) => this.handleDragOver(e)}
-                onDrop={(e) => this.handleDropOnThumbnails(e)} 
-                >
-                  {
-                    this.state.showedThumbnails.map((thumbnail) => (
-                      <div className='album-image-thumbnail-container'>
-                        <img 
-                          draggable="false"
-                          src={`${thumbnail.path}?${this.state.imageHash}`}
-                          key={thumbnail.id} 
-                          className={this.state.isDragging ? "album-image-thumbnail thumbnail-drag-overlay" : "album-image-thumbnail"} 
-                          onClick={(e) => this.moveToPage(thumbnail.id)}
-                        />
-                      </div>
-                    ))
+              <button
+                className="prev-album-image-button"
+                type="button"
+              >
+                <img
+                  src={
+                    isFirstAlbumDisplayed()
+                      ? button_right_plus
+                      : button_right
                   }
-                </div>
-            </div>
-            <DescriptionEditor albumId={this.state.album.id} />
-          </div>
-        </>
-      );
-    }
-}
+                  className="button-image"
+                  alt=""
+                  onClick={onPrevAlbumClick}
+                  draggable="false"
+                />
 
+              </button>
+            </div>
+            <div className='album-image-thumbnail-list' 
+              onDragEnter={(e) => handleDragEnter(e)} 
+              onDragLeave={(e) => handleLeave(e)} 
+              onDragOver={(e) => handleDragOver(e)}
+              onDrop={(e) => handleDropOnThumbnails(e)} 
+              >
+                {
+                  showedThumbnails.map((thumbnail) => (
+                    <div className='album-image-thumbnail-container'>
+                      <img 
+                        draggable="false"
+                        src={`${thumbnail.path}?${imageHash}`}
+                        key={thumbnail.id} 
+                        className={isDragging ? "album-image-thumbnail thumbnail-drag-overlay" : "album-image-thumbnail"} 
+                        onClick={(e) => moveToPage(thumbnail.id)}
+                      />
+                    </div>
+                  ))
+                }
+              </div>
+          </div>
+          <DescriptionEditor albumId={album.id} />
+        </div>
+      </>
+    );
+  }
