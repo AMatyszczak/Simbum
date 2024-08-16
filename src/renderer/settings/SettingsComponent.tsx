@@ -38,14 +38,14 @@ class SettingsComponent extends React.Component<SettingsComponentProps, Settings
   }
 
   render() {
-      if(this.state.newPathSet) { return <Navigate to="/album"/> }
+      if(this.state.newPathSet) { return <Navigate to="/volumeGallery"/> }
         else {
           return (
             <>
             <button type="button" className="return-button">
               {
                 this.isPathToDataSet() ?
-                  <Link to="/album">
+                  <Link to="/volumeGallery">
                     <img src={arrow_left} alt="" />
                   </Link>:
                     <img src={arrow_left} className="return-button-icon-gray disabled" alt="" />

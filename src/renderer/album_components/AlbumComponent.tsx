@@ -22,73 +22,71 @@ type Album = {
 
 type LocationState = {
   state: {
+    volume: {
+      id: string
+    }
     album: {
-      albumId: string;
-      albumTitle: string;
-      albumDescription: string;
+      id: string;
+      title: string;
+      description: string;
       imagePath: string;
     };
   }
 }
 
 export default function AlbumComponent() {
-  // constructor(props: any) {
-    const [albumsList, setAlbumsList] = useState<{id: string}[]>([])
-    const [albumNo, setAlbumNo] = useState<number>(0)
-    const [pagesLoaded, setPagesLoaded] = useState<boolean>(false)
-    const [pageNo, setPageNo] = useState<number>(0)
-    const [pageId, setPageId] = useState<string>('0')
-    const [album, setAlbum] = useState<Album>({id: "0", no: 0, imagesIds: []})
-    const [pagesList, setPagesList] = useState<{id: string, filename: string, path: string}[]>([])
-    const [imageHash, setImageHash] = useState(Date.now())
-    const [currentImagePath, setCurrentImagePath] = useState('')
-    const [savedThumbnails, setSavedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
-    const [showedThumbnails, setShowedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
-    const [draggedElement, setDraggedElement] = useState<{path: string, filename: string, id: string}>({path: '', filename: '', id: ''})
-    const [isDragging, setIsDrawing] = useState(false)
-    const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
-    
-    const location = useLocation() as LocationState;
-
-    console.log("location:", location)
-    // onNextAlbumClick = onNextAlbumClick.bind(;
-    // onPrevAlbumClick = onPrevAlbumClick.bind(;
-    // isLastAlbumDisplayed = isLastAlbumDisplayed.bind(;
-    // isFirstAlbumDisplayed = isFirstAlbumDisplayed.bind(;
-    // deleteCurrentPage = deleteCurrentPage.bind(;
-  // }
+  // const [albumsList, setAlbumsList] = useState<{id: string}[]>([])
+  const [albumNo, setAlbumNo] = useState<number>(0)
+  const [pagesLoaded, setPagesLoaded] = useState<boolean>(false)
+  const [displayedImageNo, setDisplayedImageNo] = useState<number>(0)
+  // const [pageNo, setPageNo] = useState<number>(0)
+  const [pageId, setPageId] = useState<string>('0')
+  const [album, setAlbum] = useState<Album>({id: "0", no: 0, imagesIds: []})
+  const [pagesList, setPagesList] = useState<{id: string, filename: string, path: string}[]>([])
+  const [imageHash, setImageHash] = useState(Date.now())
+  const [currentImagePath, setCurrentImagePath] = useState('')
+  const [savedThumbnails, setSavedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
+  const [showedThumbnails, setShowedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
+  const [draggedElement, setDraggedElement] = useState<{path: string, filename: string, id: string}>({path: '', filename: '', id: ''})
+  const [isDragging, setIsDrawing] = useState(false)
+  const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
+  
+  const location = useLocation() as LocationState;
+  const volumeId: string = location.state.volume.id
 
   useEffect(() => {
-    loadAlbums();
+    loadAlbumById(location.state.volume.id, location.state.album.id)
 
   }, [])
   
 
-  function loadAlbums() {
-    window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      setAlbumsList(arg);
-      console.log("loadAlbums:", arg)
-      if(location.state != null) {
-        console.log("loadAlbums, location.state:", location.state.album.albumId)
-        loadAlbumById(location.state.album.albumId, 0)
-      } else {
-        loadAlbumById(arg[0].id, 0)
-      }
-      console.log("Event, get-album-map, albumsList:", arg)
-    })
-    window.electron.ipcRenderer.sendMessage('get-album-map', []);
-  }
+  // function loadAlbums() {
+  //   window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
+  //     setAlbumsList(arg);
+  //     console.log("loadAlbums:", arg)
+  //     if(location.state != null) {
+  //       console.log("loadAlbums, location.state:", location.state.album.albumId)
+  //       loadAlbumById(location.state.album.albumId, 0)
+  //     } else {
+  //       loadAlbumById(arg[0].id, 0)
+  //     }
+  //     console.log("Event, get-album-map, albumsList:", arg)
+  //   })
+  //   window.electron.ipcRenderer.sendMessage('get-album-map', []);
+  // }
 
-  function loadAlbumById(id: string, pageNo: number) {
+  function loadAlbumById(volumeId: string, albumId: string) {
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
-      console.log("loadAlbumById:", id)
+      console.log("loadAlbumById:", volumeId, albumId)
       setAlbum(album)
       setPagesLoaded(true)
-      setPageNo(pageNo)
-      setAlbumNo(pageNo)
-      loadAlbumImages(id, true)
+      setDisplayedImageNo(0)
+      // setPageNo(pageNo)
+
+      // setAlbumNo(pageNo)
+      loadAlbumImages(volumeId, albumId, true)
     });
-    window.electron.ipcRenderer.sendMessage('get-album', [id]);  
+    window.electron.ipcRenderer.sendMessage('get-album', [volumeId, albumId]);  
   }
 
   function loadAlbumByIndex(index: number) {
@@ -97,15 +95,15 @@ export default function AlbumComponent() {
       
       setAlbum(arg) 
       setPagesLoaded(true)
-      setPageNo(pageNo)
-      setAlbumNo(index)
-      loadAlbumImages(arg.id, true)
+      setDisplayedImageNo(0)
+      // setAlbumNo(index)
+      loadAlbumImages(volumeId, arg.id, true)
     });
-    window.electron.ipcRenderer.sendMessage('get-album', [albumsList[index].id]);  
+    window.electron.ipcRenderer.sendMessage('get-album', [album.id]);  
   }
 
   function onNextAlbumClick() {
-    if (isLastAlbumDisplayed()) {
+    if (isLastImageDisplayed()) {
       createNewAlbum(albumNo + 1);
     } else {
       loadAlbumByIndex(albumNo + 1);
@@ -113,7 +111,7 @@ export default function AlbumComponent() {
   }
 
   function onPrevAlbumClick() {
-    if (isFirstAlbumDisplayed()) {
+    if (isFirstImageDisplayed()) {
       createNewAlbum(albumNo);
     } else {
       loadAlbumByIndex(albumNo - 1);
@@ -122,21 +120,19 @@ export default function AlbumComponent() {
 
   function createNewAlbum(index: number) {
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      setAlbumsList(arg);
-      loadAlbumById(arg[index].id, index)
-      loadAlbumImages(arg[index].id, true)
+      // setAlbumsList(volumeId, arg);
+      loadAlbumById(volumeId, arg[index].id)
+      loadAlbumImages(volumeId, arg[index].id, true)
     })
     window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
 
-  function isLastAlbumDisplayed(): boolean {
-    console.log("isLastAlbumDisplated:", albumsList.length - 1, albumNo)
-    return albumsList.length - 1 <= albumNo
+  function isLastImageDisplayed(): boolean {
+    return showedThumbnails.length - 1 <= displayedImageNo
   }
 
-  function isFirstAlbumDisplayed(): boolean {
-    console.log("isFirstAlbumDisplayed", albumNo)
-    return albumNo <= 0 
+  function isFirstImageDisplayed(): boolean {
+    return displayedImageNo <= 0 
   }
 
   function deleteCurrentPage(): any {
@@ -144,7 +140,7 @@ export default function AlbumComponent() {
     if(pagesList.length >= 1) {
       console.log("deleteCurrentPage albumId:", album.id, "pageId:", pageId)
       window.electron.ipcRenderer.sendMessage('page-image-deleted', [album.id, pageId]);
-      loadAlbumImages(album.id, true)
+      loadAlbumImages(volumeId, album.id, true)
     }
 
   }
@@ -167,7 +163,7 @@ export default function AlbumComponent() {
         ]);
       }
       
-      loadAlbumImages(album.id, false);
+      loadAlbumImages(volumeId, album.id, false);
     }
     e.stopPropagation()
   }
@@ -183,7 +179,7 @@ export default function AlbumComponent() {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-        loadAlbumImages(album.id, false);
+        loadAlbumImages(volumeId, album.id, false);
       }); 
       
       window.electron.ipcRenderer.sendMessage('page-image-added', [
@@ -267,13 +263,7 @@ export default function AlbumComponent() {
     return postionOfImage
   }
 
-  function handleDragEnd(e: any) {
-    e.preventDefault();
-    setIsDrawing(false)
-    e.stopPropagation();
-  }
-
-  function loadAlbumImages(albumId: string, showFirstPage: boolean) {
+  function loadAlbumImages(volumeId: string, albumId: string, showFirstPage: boolean) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
       console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
@@ -299,9 +289,7 @@ export default function AlbumComponent() {
           setShowedThumbnails([])
       }
     });
-    window.electron.ipcRenderer.sendMessage('get-album-images', [
-      albumId,
-    ]);
+    window.electron.ipcRenderer.sendMessage('get-album-images', [volumeId, albumId]);
   }
 
   function moveToPage(pageId: string) {
@@ -327,7 +315,7 @@ export default function AlbumComponent() {
                 type="button"
               >
                 <img
-                  src={isLastAlbumDisplayed() ? button_left_plus : button_left}
+                  src={isLastImageDisplayed() ? button_left_plus : button_left}
                   className="button-image"
                   alt=""
                   onClick={onNextAlbumClick}
@@ -352,9 +340,7 @@ export default function AlbumComponent() {
               >
                 <img
                   src={
-                    isFirstAlbumDisplayed()
-                      ? button_right_plus
-                      : button_right
+                    isFirstImageDisplayed() ? button_right_plus : button_right
                   }
                   className="button-image"
                   alt=""

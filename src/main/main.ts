@@ -50,24 +50,29 @@ function createPathIfNotExists(p: string) {
   }
 }
 
-function createPathToAlbum(rootPath: string, albumId: string) {
-  return path.join(rootPath, "albums", albumId);
+function createPathToVolume(rootPath: string, volumeId: string) {
+  return path.join(rootPath, "volumes", volumeId);
 }
 
-function createPathToImage(rootPath: string, albumId:string, imageId: string) {
-  return path.join(rootPath, "albums", albumId, "images", imageId.concat(".png"));
+function createPathToAlbum(rootPath: string, volumeId: string, albumId: string) {
+  return path.join(rootPath, "volumes", volumeId, "albums", albumId);
+}
+
+function createPathToImage(rootPath: string, volumeId: string, albumId:string, imageId: string) {
+  return path.join(rootPath, "volumes", volumeId, "albums", albumId, "images", imageId.concat(".png"));
 }
 
 ipcMain.on('page-image-changed', async (event, args) => {
   console.log("page-image-changed")
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0];
-    const imageId = args[1];
+    const volumeId = args[0];
+    const albumId = args[1];
+    const imageId = args[2];
     const file = fs.readFileSync(args[2]);
 
-    const albumPath = createPathToAlbum(rootPath, albumId);
-    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    const albumPath = createPathToAlbum(rootPath, volumeId, albumId);
+    const imagePath = createPathToImage(rootPath, volumeId, albumId, imageId);
 
     const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     const imagesMap = JSON.parse(imagesMapFile.toString())
@@ -91,10 +96,11 @@ ipcMain.on('page-image-changed', async (event, args) => {
 ipcMain.on('album-title-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[1];
-    const albumPath = createPathToAlbum(rootPath, albumId);
+    const volumeId = args[1];
+    const albumId = args[2];
+    const albumPath = createPathToAlbum(rootPath, volumeId, albumId);
     createPathIfNotExists(albumPath);
-    const value = args[2];
+    const value = args[3];
     fs.writeFileSync(`${albumPath}/title.txt`, value);
   }
 });
@@ -102,11 +108,12 @@ ipcMain.on('album-title-changed', async (event, args) => {
 ipcMain.on('page-image-deleted', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0];
-    const imageId = args[1];
+    const volumeId = args[0];
+    const albumId = args[1];
+    const imageId = args[2];
     
-    const albumPath = createPathToAlbum(rootPath, albumId);
-    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    const albumPath = createPathToAlbum(rootPath, volumeId, albumId);
+    const imagePath = createPathToImage(rootPath, volumeId, albumId, imageId);
     
     const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     const imagesMap = JSON.parse(imagesMapFile.toString())
@@ -129,15 +136,16 @@ ipcMain.on('page-image-deleted', async (event, args) => {
 ipcMain.on('page-image-added', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0];
-    const indexOfImage = args[1]
-    const file = fs.readFileSync(args[2]);
+    const volumeId = args[0];
+    const albumId = args[1];
+    const indexOfImage = args[2];
+    const file = fs.readFileSync(args[3]);
     
     const imageId = uuidv4()
-    const imagePath = createPathToImage(rootPath, albumId, imageId);
+    const imagePath = createPathToImage(rootPath, volumeId, albumId, imageId);
     fs.writeFileSync(imagePath, file);
     
-    const albumPath = createPathToAlbum(rootPath, albumId)
+    const albumPath = createPathToAlbum(rootPath, volumeId, albumId)
     let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     let imagesMap = JSON.parse(imagesMapFile.toString())
     imagesMap["images"].splice(indexOfImage, 0, {
@@ -158,13 +166,14 @@ ipcMain.on('page-image-added', async (event, args) => {
 ipcMain.on('create-album', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const newAlbumIndex = args[0];
+    const volumeId = args[0];
+    const newAlbumIndex = args[1];
     const newAlbumId = uuidv4();
     const firstImageId = uuidv4()
     const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
 
-    const albumPath = createPathToAlbum(rootPath, newAlbumId);
-    const imagePath = createPathToImage(rootPath, newAlbumId, firstImageId);
+    const albumPath = createPathToAlbum(rootPath, volumeId, newAlbumId);
+    const imagePath = createPathToImage(rootPath, volumeId, newAlbumId, firstImageId);
     createPathIfNotExists(albumPath);
     createPathIfNotExists(path.join(albumPath, "images"));
 
@@ -174,13 +183,13 @@ ipcMain.on('create-album', async (event, args) => {
     fs.writeFileSync(imagePath, placeHolderImage)
     
     
-    let albumsMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+    let albumsMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
     let albumsMap = JSON.parse(albumsMapFile.toString())
     albumsMap["albums"].splice(newAlbumIndex, 0, {
       "id": newAlbumId
     })
 
-    fs.writeFileSync(path.join(rootPath, "album_map.json"), JSON.stringify(albumsMap))    
+    fs.writeFileSync(path.join(rootPath, "albums_map.json"), JSON.stringify(albumsMap))    
     event.reply('get-album-map', albumsMap["albums"])
   }
 })
@@ -188,10 +197,11 @@ ipcMain.on('create-album', async (event, args) => {
 ipcMain.on('album-description-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[1];
-    const contentPath = createPathToAlbum(rootPath, contentName);
+    const volumeId = args[1]
+    const albumId = args[2];
+    const contentPath = createPathToAlbum(rootPath, volumeId, albumId);
     createPathIfNotExists(contentPath);
-    const value = args[2];
+    const value = args[3];
 
     console.log('album-description-changed', contentPath, value)    
     fs.writeFileSync(`${contentPath}/description.txt`, value);
@@ -209,9 +219,9 @@ ipcMain.on('get-albums', async (event, arg) => {
 ipcMain.on('get-album-map', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumMapFilePath = path.join(rootPath, "album_map.json")
+    const albumMapFilePath = path.join(rootPath, "albums_map.json")
     if(fs.existsSync(albumMapFilePath)) {
-      let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      let albumMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
       let albumMap = JSON.parse(albumMapFile.toString())
   
       event.reply('get-album-map', albumMap["albums"])
@@ -220,23 +230,59 @@ ipcMain.on('get-album-map', async (event, arg) => {
 })
 
 
+ipcMain.on('get-volume-gallery-data', async (event, arg) => {
+  const rootPath: string = store.get('dataPath');
+  console.log('get-volume-gallery-data start, rootPath:', rootPath)
+  if(rootPath != null) {
+    const volumesMapFilePath = path.join(rootPath, "volumes_map.json")
+    if(fs.existsSync(volumesMapFilePath)) {
+      let volumesMapFile = fs.readFileSync(path.join(rootPath, "volumes_map.json"))
+      let volumesMap = JSON.parse(volumesMapFile.toString())
+      let volumesGalleryData: {id: string, title: string, imagePath: string}[] = []
+      volumesMap['volumes'].forEach((volumeId: any) => {
+        let volumePath = createPathToVolume(rootPath, volumeId['id'])
+        let volumeTitle = "Volume title placeholder"
+
+        const albumsMapFile = fs.readFileSync(path.join(volumePath, "albums_map.json"))
+        const albumsMap = JSON.parse(albumsMapFile.toString())
+        if(albumsMap['albums'].length <= 0) {
+          volumesGalleryData.push({"id": volumeId['id'], title: volumeTitle, imagePath: "/home/adrian/Desktop/d6078377-4435-4820-b1ec-ba0266701a96.jpeg"})
+        } else {
+          const albumId = albumsMap["albums"][0]['id']
+  
+          const albumPath = createPathToAlbum(rootPath, volumeId, albumId)
+          let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"));
+          let imagesMap = JSON.parse(imagesMapFile.toString())
+          let imageId = imagesMap["images"][0]['id']
+      
+          volumesGalleryData.push({"id": volumeId['id'], title: volumeTitle, imagePath: createPathToImage(rootPath, volumeId, albumId['id'], imageId)})
+        } 
+      });
+      console.log("reply to get-volume-gallery-data:", volumesGalleryData)
+      event.reply('get-volume-gallery-data', volumesGalleryData)
+    }
+  }
+}) 
+
+
 ipcMain.on('get-album-gallery-data', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumMapFilePath = path.join(rootPath, "album_map.json")
+    const volumeId = arg[0]
+    const albumMapFilePath = path.join(rootPath, "albums_map.json")
     if(fs.existsSync(albumMapFilePath)) {
-      let albumMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      let albumMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
       let albumMap = JSON.parse(albumMapFile.toString())
       let albumGalleryData: {albumId: string, albumTitle: string, albumDescription: string, imagePath: string}[] = []
       albumMap['albums'].forEach((albumId: any) => {
-        let albumPath = createPathToAlbum(rootPath, albumId['id'])
+        let albumPath = createPathToAlbum(rootPath, volumeId, albumId['id'])
         let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"));
         let imagesMap = JSON.parse(imagesMapFile.toString())
         let imageId = imagesMap["images"][0]['id']
         let albumTitle = fs.readFileSync(path.join(albumPath, "title.txt")).toString();
         let albumDescription = fs.readFileSync(path.join(albumPath, "description.txt")).toString();
     
-        albumGalleryData.push({"albumId": albumId['id'], albumTitle: albumTitle, albumDescription: albumDescription, imagePath: createPathToImage(rootPath, albumId['id'], imageId)})
+        albumGalleryData.push({"albumId": albumId['id'], albumTitle: albumTitle, albumDescription: albumDescription, imagePath: createPathToImage(rootPath, volumeId, albumId['id'], imageId)})
       });
       event.reply('get-album-gallery-data', albumGalleryData)
     }
@@ -247,11 +293,12 @@ ipcMain.on('get-album-gallery-data', async (event, arg) => {
 ipcMain.on('get-album-title', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[0];
-    if (contentName == null) {
+    const volumeId = args[0];
+    const albumId = args[1];
+    if (albumId == null) {
       event.reply('get-album-title',null);  
     } else {
-      const contentPath = createPathToAlbum(rootPath, contentName);
+      const contentPath = createPathToAlbum(rootPath, volumeId, albumId);
       const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
       event.reply('get-album-title', fileContent.toString());
     }
@@ -261,11 +308,12 @@ ipcMain.on('get-album-title', async (event, args) => {
 ipcMain.on('get-album-description', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[0];
-    if (contentName == null) {
+    const volumeId = args[0];
+    const albumId = args[1];
+    if (albumId == null) {
       event.reply('get-album-description',null);  
     } else {
-      const contentPath = createPathToAlbum(rootPath, contentName);
+      const contentPath = createPathToAlbum(rootPath, volumeId, albumId);
       const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
       event.reply('get-album-description', fileContent.toString());
     }
@@ -275,12 +323,13 @@ ipcMain.on('get-album-description', async (event, args) => {
 ipcMain.on('get-album-page-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0];
-    const imageId = args[1];
+    const volumeId = args[0];
+    const albumId = args[1];
+    const imageId = args[2];
     if (albumId == null || imageId == null) {
       event.reply('get-album-page-image',null, null);  
     } else {
-      const imagePath = createPathToImage(rootPath, albumId, imageId);
+      const imagePath = createPathToImage(rootPath, volumeId, albumId, imageId);
       const fileExists = fs.existsSync(imagePath);
       event.reply(
         'get-album-page-image',
@@ -293,11 +342,12 @@ ipcMain.on('get-album-page-image', async (event, args) => {
 ipcMain.on('get-album', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const albumId = args[0]
+    const volumeId = args[0]
+    const albumId = args[1]
     if (albumId == null) {
       event.reply('get-album', null);
     } else {
-      const albumPath = createPathToAlbum(rootPath, albumId);
+      const albumPath = createPathToAlbum(rootPath, volumeId, albumId);
       const albumExists = fs.existsSync(albumPath);
       if (!albumExists) {
         event.reply('get-album', null);
@@ -328,9 +378,10 @@ ipcMain.on('get-album', async (event, args) => {
 ipcMain.on('get-album-images', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const contentName = args[0]
+    const volumeId = args[0]
+    const albumId = args[1]
  
-    const contentPath = createPathToAlbum(rootPath, contentName)
+    const contentPath = createPathToAlbum(rootPath, volumeId, albumId)
     const imagesMapFilePath = path.join(contentPath, "images_map.json")
     if(fs.existsSync(imagesMapFilePath)) {
 
@@ -397,34 +448,35 @@ ipcMain.on('settings-select-path', async (event, args) => {
       });
     let rootPath = dirPathReturnValue.filePaths[0];
     console.log("settings-select-path:", rootPath) 
-    console.log("settings-select-path:", doesAlbumFolderExists(rootPath), doesAlbumMapExists(rootPath))
-    if(!doesAlbumFolderExists(rootPath) && !doesAlbumMapExists(rootPath)) {
-      console.log("does Album")
-      const newAlbumIndex = 0;
-      const newAlbumId = uuidv4();
-      const firstImageId = uuidv4()
-      const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
+  
+    console.log("settings-select-path:", doesVolumeFolderExists(rootPath), doesVolumeMapExists(rootPath))
+    if(!doesVolumeFolderExists(rootPath) && !doesVolumeMapExists(rootPath)) {
+      const newVolumeId = uuidv4();
+      // const firstImageId = uuidv4()
+      // const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
 
-      const albumPath = createPathToAlbum(rootPath, newAlbumId);
-      const imagePath = createPathToImage(rootPath, newAlbumId, firstImageId);
-      createPathIfNotExists(albumPath);
-      createPathIfNotExists(path.join(albumPath, "images"));
+      const volumePath = createPathToVolume(rootPath, newVolumeId);
+      // const imagePath = createPathToImage(rootPath, newVolumeId, firstImageId);
+      createPathIfNotExists(volumePath);
+      createPathIfNotExists(path.join(volumePath, "albums"))
+      fs.writeFileSync(path.join(volumePath, "albums_map.json"), JSON.stringify({'albums': []}))
+      // createPathIfNotExists(path.join(volumePath, "images"));
       console.log("createPathIfNotExists")
-      fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
-      fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
-      fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
-      fs.writeFileSync(imagePath, placeHolderImage)
+      // fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
+      // fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
+      // fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
+      // fs.writeFileSync(imagePath, placeHolderImage)
       
-      // let albumsMapFile = fs.readFileSync(path.join(rootPath, "album_map.json"))
+      // let albumsMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
       // let albumsMap = JSON.parse([{"id": newAlbumId.toString()}]);
       // albumsMap["albums"].splice(newAlbumIndex, 0, {
       //   "id": newAlbumId
       // })
       
-      fs.writeFileSync(path.join(rootPath, "album_map.json"), JSON.stringify({"albums":[{"id": newAlbumId.toString()}]})) 
+      fs.writeFileSync(path.join(rootPath, "volumes_map.json"), JSON.stringify({"volumes":[{"id": newVolumeId.toString()}]}))
     }
-
-    console.log('settings-select-path.')
+    
+    console.log("finished settings select path, dataPath:", rootPath) 
     store.set('dataPath', rootPath);
     event.reply('settings-select-path', rootPath)
   }
@@ -458,7 +510,7 @@ const installExtensions = async () => {
 
 
 const doesAlbumMapExists = (dirPath: string) => {
-  const albumMapPath = path.join(dirPath, "album_map.json")
+  const albumMapPath = path.join(dirPath, "albums_map.json")
   return fs.existsSync(albumMapPath)
 }
 
@@ -467,13 +519,23 @@ const doesAlbumFolderExists = (dirPath: string) => {
   return fs.existsSync(albumFolderPath)
 }
 
+const doesVolumeMapExists = (dirPath: string) => {
+  const volumeMapPath = path.join(dirPath, "volumes_map.json")
+  return fs.existsSync(volumeMapPath)
+}
+
+const doesVolumeFolderExists = (dirPath: string) => {
+  const volumeFolderPath = path.join(dirPath, "volumes")
+  return fs.existsSync(volumeFolderPath)
+}
+
 
 const loadFileTree = async () => {
   const dataPath: string = store.get('dataPath');
   console.log("loadFileTree:", dataPath)
   if (dataPath != null) {
-    if(doesAlbumFolderExists(dataPath) && doesAlbumMapExists(dataPath)) {
-      console.log("loadFileTree", "doesAlbumFolderExists", doesAlbumFolderExists(dataPath), "doesAlbumMapExists", doesAlbumMapExists(dataPath))
+    if(doesVolumeFolderExists(dataPath) && doesVolumeMapExists(dataPath)) {
+      console.log("loadFileTree", "doesVolumeFolderExists", doesVolumeFolderExists(dataPath), "doesVolumeMapExists", doesVolumeMapExists(dataPath))
       const files = fs.readdirSync(dataPath, {});
       store.set('pagesList', files);
     } else {

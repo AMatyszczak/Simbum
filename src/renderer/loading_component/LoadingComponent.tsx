@@ -1,7 +1,9 @@
 import React from "react";
 
-export default class LoadingComponent extends React.Component {  
-    render() {
-      return ("Loading")
-    }
+export default function LoadingComponent() {  
+    return(
+      <div>
+        Loading
+      </div>
+    )
   }

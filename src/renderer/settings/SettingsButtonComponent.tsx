@@ -28,7 +28,7 @@ export default class SettingsButtonComponent extends React.Component <ToolbarCom
         <button type="button" className="button" onClick={this.props.onTrashClick}>
           <img src={trash_icon} className="settings-icon" alt=""/>
         </button>
-        <Link to="/albumGallery">Gallery</Link>
+        <Link to="/volumeGallery">Gallery</Link>
       </div>
     );
   }
