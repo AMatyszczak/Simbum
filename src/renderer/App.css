@@ -17,10 +17,6 @@ body {
   height: 100vh;
   overflow: hidden;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
-
   background: linear-gradient(#ebeffc, #c1d3e9 25%);
   margin: 0;
 }
