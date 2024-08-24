@@ -17,8 +17,11 @@ export type Channels =
   | 'get-albums'
   | 'get-album-map'
   | 'get-album-gallery-data'
-  | 'get-volume'
-  | 'get-volume-gallery-data';
+  | 'get-family'
+  | 'get-family-gallery-data'
+  | 'add-family'
+  | 'remove-family'
+  | 'edit-family';
 
 contextBridge.exposeInMainWorld('electron', {
   ipcRenderer: {

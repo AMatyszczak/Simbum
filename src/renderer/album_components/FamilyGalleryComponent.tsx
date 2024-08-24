@@ -8,6 +8,7 @@ import { AppBar, Badge, Box, Card, Divider, Fab, IconButton, Modal, Stack, TextF
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import { AccountCircle, Add, AddPhotoAlternate } from '@mui/icons-material';
+import { ipcRenderer } from 'electron';
 
 const StyledModal = {
   position: 'absolute' as 'absolute',
@@ -41,41 +42,98 @@ const Img = styled('img')({
   maxHeight: '100%',
 });
 
-export default function VolumeGalleryComponent() {
+export default function FamilyGalleryComponent() {
     const navigate = useNavigate();
-    const [galleryData, setGalleryData] = useState([])
-    const [newVolumeOpen, setNewVolumeOpen] = useState(false)
-    const handleOpenNewVolume = () => setNewVolumeOpen(true)
-    const handleCloseNewVolume = () => setNewVolumeOpen(false)
+    const [galleryData, setFamilyData] = useState([])
+    
+    const [newFamilyOpen, setNewFamilyModalOpen] = useState(false)
+    const [newFamilyName, setNewFamilyName] = useState("")
+    const [newFamilyImagePath, setNewFamilyAvatarPath] = useState("")
+
+
+    const handleNewFamilyNameChange = (e: any) => setNewFamilyName(e.target.value)
+
+    const handleOpenNewFamilyModal = () => setNewFamilyModalOpen(true)
+    const handleCloseNewFamilyModal = () => setNewFamilyModalOpen(false)
 
     useEffect(() => {
-        console.log("VolumeGallerycomponent")
-        window.electron.ipcRenderer.once('get-volume-gallery-data', (arg: any) => {
-            console.log("got volumes:", arg)
-            setGalleryData(arg);
+        loadFamillyGalleryData()
+    }, [])
+    
+    function loadFamillyGalleryData() {
+        
+        console.log("loadFamillyGalleryData")
+        window.electron.ipcRenderer.once('get-family-gallery-data', (arg: any) => {
+            console.log("got families:", arg)
+            setFamilyData(arg);
         })
 
-        window.electron.ipcRenderer.sendMessage('get-volume-gallery-data', []);
-    }, [])
+        window.electron.ipcRenderer.sendMessage('get-family-gallery-data', []);
+    }
 
-    function onVolumeClick(e:any, volumeGalleryData: any){
-        console.log("onAlbumClick", e, volumeGalleryData)
-        navigate("/albumGallery", {state:{volume: volumeGalleryData}} )    
+    function onFamilyClick(e:any, familyGalleryData: any){
+        console.log("onAlbumClick", e, familyGalleryData)
+        navigate("/albumGallery", {state:{family: familyGalleryData}} )    
         console.log("after navigate")    
     }
 
     function onAlbumRemoveClick(e: any, albumData: any) {
-        console.log("onVolumeRemoveClick", e, albumData)
+        console.log("onFamilyRemoveClick", e, albumData)
         e.stopPropagation(); 
     }
 
+
+    function onNewFamilyImageOver(e: any) {
+        event?.stopPropagation();
+        event?.preventDefault();
+    }
+
+
+    function onNewFamilyImageDrop(e: any) {
+        console.log("onNewFamilyImageDrop")
+
+        e.preventDefault()
+        
+        const file = e.dataTransfer.files.item(0);
+
+        if (file.type.includes('image/')) {
+            setNewFamilyAvatarPath(`${file.path}`);
+
+            // if(pageId != null) {
+            //     window.electron.ipcRenderer.sendMessage('page-image-changed', [
+            //     album.id,
+            //     pageId,
+            //     file.path,
+            //     ]);
+            // }
+            
+            // loadAlbumImages(familyId, album.id, false);
+        }
+        e.stopPropagation()
+    }
+    
+    function onNewFamilyImageEnd(e: any) {
+        console.log("onNewFamilyImageEnd")
+    }
+    
+    function addNewFamily(e: any) {
+        window.electron.ipcRenderer.once('add-family', (arg: any) => {
+            console.log("new family added, arg:", arg)
+            loadFamillyGalleryData()
+            handleCloseNewFamilyModal()
+            setNewFamilyAvatarPath("")
+            setNewFamilyName("")
+        })
+    
+        window.electron.ipcRenderer.sendMessage('add-family', [newFamilyImagePath, newFamilyName, 0])
+    }
+
+
     return (
         <>
-        
-        {/* <Button onClick={() => setNewVolumeOpen(true)}>Open modal</Button> */}
         <Modal
-            open={newVolumeOpen}
-            onClose={handleCloseNewVolume}
+            open={newFamilyOpen}
+            onClose={handleCloseNewFamilyModal}
             aria-labelledby="modal-modal-title"
             aria-describedby="modal-modal-description"
         >
@@ -86,11 +144,16 @@ export default function VolumeGalleryComponent() {
                             Dodaj nową rodzinę
                         </Typography>
                     </AppBar>
-                    <TextField id="outlined-basic" label="Nazwa rodziny" variant="filled" />
-                    <Box display='flex' alignItems='center' justifyContent="center" sx={{height: 200, backgroundColor: 'grey'}}>
-                        <AddPhotoAlternate style={{ fontSize: 40, color: 'white'}}/>
+                    <TextField value={newFamilyName} onChange={handleNewFamilyNameChange} id="outlined-basic" label="Nazwa" variant="filled" />
+                    <Box display='flex' alignItems='center' justifyContent="center" sx={{width: 400, height: 200, backgroundColor: 'grey'}} onDragOver={onNewFamilyImageOver} onDragEnd={onNewFamilyImageEnd} onDrop={(e) => onNewFamilyImageDrop(e)}> 
+                            {
+                                (newFamilyImagePath != null && newFamilyImagePath.length > 0) ?
+                                    <img src={"file://"+ newFamilyImagePath} style={{"maxHeight": "200px"}}></img>                                
+                                    : <AddPhotoAlternate style={{ fontSize: 40, color: 'white'}} onDrop={(e) => onNewFamilyImageDrop(e)}/>
+                                
+                            }
                     </Box>
-                    <StyledFab color='primary'>
+                    <StyledFab color='primary' onClick={addNewFamily} >
                         <Add />
                     </StyledFab>
                 </Stack>
@@ -103,9 +166,9 @@ export default function VolumeGalleryComponent() {
                     size="large"
                     edge="start"
                     color="inherit"
-                    aria-label="add volume"
+                    aria-label="add family"
                     sx={{ mr: 2 }}
-                    onClick={handleOpenNewVolume}
+                    onClick={handleOpenNewFamilyModal}
                 >
                     <Add />
                 </IconButton>
@@ -114,8 +177,9 @@ export default function VolumeGalleryComponent() {
                     noWrap
                     component="div"
                     sx={{ display: { xs: 'none', sm: 'block' } }}
+                    align="center"
                 >
-                    
+                 Rodziny   
                 </Typography>
                 <Box sx={{ flexGrow: 1 }} />
                 </Toolbar>
@@ -127,7 +191,7 @@ export default function VolumeGalleryComponent() {
                 {
                 galleryData.map((data: any, i: number) => (
                     <Card sx={{margin: 2, minWidth: 400, maxWidth: 400, flexGrow: 1}}
-                            onClick={(e) => onVolumeClick(e, data)}
+                            onClick={(e) => onFamilyClick(e, data)}
                             key={i}
                     >
                         <Paper
@@ -142,7 +206,16 @@ export default function VolumeGalleryComponent() {
                             <Grid container spacing={1}>
                                 <Grid item>
                                     <Box display="flex" sx={{ width: 128, height: 128 }} >
-                                        <Img alt="complex" src={"file://" + data["imagePath"]} /> tom 1 rodzina noobw
+                                        <Img alt="complex" src={"file://" + data["imagePath"]} /> 
+                                        <Typography
+                                            variant="h6"
+                                            // noWrap
+                                            component="div"
+                                            sx={{ display: { xs: 'none', sm: 'block' } }}
+                                            align="center"
+                                        >
+                                            {data['name']}
+                                        </Typography>
                                     </Box>
                                 </Grid>
                                 <Grid item xs={12} sm container>

@@ -22,7 +22,7 @@ type Album = {
 
 type LocationState = {
   state: {
-    volume: {
+    family: {
       id: string
     }
     album: {
@@ -52,10 +52,10 @@ export default function AlbumComponent() {
   const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
   
   const location = useLocation() as LocationState;
-  const volumeId: string = location.state.volume.id
+  const familyId: string = location.state.family.id
 
   useEffect(() => {
-    loadAlbumById(location.state.volume.id, location.state.album.id)
+    loadAlbumById(location.state.family.id, location.state.album.id)
 
   }, [])
   
@@ -75,18 +75,18 @@ export default function AlbumComponent() {
   //   window.electron.ipcRenderer.sendMessage('get-album-map', []);
   // }
 
-  function loadAlbumById(volumeId: string, albumId: string) {
+  function loadAlbumById(familyId: string, albumId: string) {
     window.electron.ipcRenderer.once('get-album', (arg: any) => {
-      console.log("loadAlbumById:", volumeId, albumId)
+      console.log("loadAlbumById:", familyId, albumId)
       setAlbum(album)
       setPagesLoaded(true)
       setDisplayedImageNo(0)
       // setPageNo(pageNo)
 
       // setAlbumNo(pageNo)
-      loadAlbumImages(volumeId, albumId, true)
+      loadAlbumImages(familyId, albumId, true)
     });
-    window.electron.ipcRenderer.sendMessage('get-album', [volumeId, albumId]);  
+    window.electron.ipcRenderer.sendMessage('get-album', [familyId, albumId]);  
   }
 
   function loadAlbumByIndex(index: number) {
@@ -97,7 +97,7 @@ export default function AlbumComponent() {
       setPagesLoaded(true)
       setDisplayedImageNo(0)
       // setAlbumNo(index)
-      loadAlbumImages(volumeId, arg.id, true)
+      loadAlbumImages(familyId, arg.id, true)
     });
     window.electron.ipcRenderer.sendMessage('get-album', [album.id]);  
   }
@@ -120,9 +120,9 @@ export default function AlbumComponent() {
 
   function createNewAlbum(index: number) {
     window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      // setAlbumsList(volumeId, arg);
-      loadAlbumById(volumeId, arg[index].id)
-      loadAlbumImages(volumeId, arg[index].id, true)
+      // setAlbumsList(familyId, arg);
+      loadAlbumById(familyId, arg[index].id)
+      loadAlbumImages(familyId, arg[index].id, true)
     })
     window.electron.ipcRenderer.sendMessage('create-album', [index]);
   }
@@ -140,7 +140,7 @@ export default function AlbumComponent() {
     if(pagesList.length >= 1) {
       console.log("deleteCurrentPage albumId:", album.id, "pageId:", pageId)
       window.electron.ipcRenderer.sendMessage('page-image-deleted', [album.id, pageId]);
-      loadAlbumImages(volumeId, album.id, true)
+      loadAlbumImages(familyId, album.id, true)
     }
 
   }
@@ -163,7 +163,7 @@ export default function AlbumComponent() {
         ]);
       }
       
-      loadAlbumImages(volumeId, album.id, false);
+      loadAlbumImages(familyId, album.id, false);
     }
     e.stopPropagation()
   }
@@ -179,7 +179,7 @@ export default function AlbumComponent() {
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
       window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-        loadAlbumImages(volumeId, album.id, false);
+        loadAlbumImages(familyId, album.id, false);
       }); 
       
       window.electron.ipcRenderer.sendMessage('page-image-added', [
@@ -263,7 +263,7 @@ export default function AlbumComponent() {
     return postionOfImage
   }
 
-  function loadAlbumImages(volumeId: string, albumId: string, showFirstPage: boolean) {
+  function loadAlbumImages(familyId: string, albumId: string, showFirstPage: boolean) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
       console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
@@ -289,7 +289,7 @@ export default function AlbumComponent() {
           setShowedThumbnails([])
       }
     });
-    window.electron.ipcRenderer.sendMessage('get-album-images', [volumeId, albumId]);
+    window.electron.ipcRenderer.sendMessage('get-album-images', [familyId, albumId]);
   }
 
   function moveToPage(pageId: string) {

@@ -5,8 +5,8 @@ import SettingsComponent from './settings/SettingsComponent';
 import React from 'react';
 import AlbumComponent from './album_components/AlbumComponent';
 import LoadingComponent from './loading_component/LoadingComponent';
-import AlbumGalleryComponent from './album_components/VolumeGalleryComponent';
-import VolumeGalleryComponent from './album_components/VolumeGalleryComponent';
+import AlbumGalleryComponent from './album_components/FamilyGalleryComponent';
+import FamilyGalleryComponent from './album_components/FamilyGalleryComponent';
 import AlbumGallery from './album_components/AlbumGallery';
 
 interface SimbumState {
@@ -42,8 +42,8 @@ class Simbum extends React.Component<any, SimbumState> {
       return <LoadingComponent />;
     }
    
-    console.log("App.tsx, render returns VolumeGalleryComponent")
-    return <VolumeGalleryComponent />
+    console.log("App.tsx, render returns FamilyGalleryComponent")
+    return <FamilyGalleryComponent />
   }
 }
 
@@ -52,7 +52,7 @@ export default function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Simbum />} />
-        <Route path="/volumeGallery" element={<VolumeGalleryComponent />} />
+        <Route path="/familyGallery" element={<FamilyGalleryComponent />} />
         <Route path="/album" element={<AlbumComponent />} />
         <Route path="/albumGallery" element={<AlbumGallery />} />
         <Route path="/settings" element={<SettingsComponent isPathToUserFilesSet={false}/>} />
