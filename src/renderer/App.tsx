@@ -3,11 +3,10 @@ import './App.css';
 import 'react-quill/dist/quill.snow.css';
 import SettingsComponent from './settings/SettingsComponent';
 import React from 'react';
-import AlbumComponent from './album_components/AlbumComponent';
+import AlbumComponent from './album_components/TurnComponent';
 import LoadingComponent from './loading_component/LoadingComponent';
-import AlbumGalleryComponent from './album_components/FamilyGalleryComponent';
 import FamilyGalleryComponent from './album_components/FamilyGalleryComponent';
-import AlbumGallery from './album_components/AlbumGallery';
+import TurnGallery from './album_components/TurnGallery';
 
 interface SimbumState {
   isComponentMounted: boolean;
@@ -54,7 +53,7 @@ export default function App() {
         <Route path="/" element={<Simbum />} />
         <Route path="/familyGallery" element={<FamilyGalleryComponent />} />
         <Route path="/album" element={<AlbumComponent />} />
-        <Route path="/albumGallery" element={<AlbumGallery />} />
+        <Route path="/turnGallery" element={<TurnGallery />} />
         <Route path="/settings" element={<SettingsComponent isPathToUserFilesSet={false}/>} />
       </Routes>
     </Router>

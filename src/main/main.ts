@@ -54,8 +54,8 @@ function createPathToFamily(rootPath: string, familyId: string) {
   return path.join(rootPath, "families", familyId);
 }
 
-function createPathToAlbum(rootPath: string, familyId: string, albumId: string) {
-  return path.join(rootPath, "families", familyId, "albums", albumId);
+function createPathToTurn(rootPath: string, familyId: string, turnId: string) {
+  return path.join(rootPath, "families", familyId, "albums", turnId);
 }
 
 function createPathToImage(rootPath: string, familyId: string, albumId:string, imageId: string) {
@@ -71,7 +71,7 @@ ipcMain.on('page-image-changed', async (event, args) => {
     const imageId = args[2];
     const file = fs.readFileSync(args[2]);
 
-    const albumPath = createPathToAlbum(rootPath, familyId, albumId);
+    const albumPath = createPathToTurn(rootPath, familyId, albumId);
     const imagePath = createPathToImage(rootPath, familyId, albumId, imageId);
 
     const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
@@ -98,7 +98,7 @@ ipcMain.on('album-title-changed', async (event, args) => {
   if (rootPath != null) {
     const familyId = args[1];
     const albumId = args[2];
-    const albumPath = createPathToAlbum(rootPath, familyId, albumId);
+    const albumPath = createPathToTurn(rootPath, familyId, albumId);
     createPathIfNotExists(albumPath);
     const value = args[3];
     fs.writeFileSync(`${albumPath}/title.txt`, value);
@@ -112,7 +112,7 @@ ipcMain.on('page-image-deleted', async (event, args) => {
     const albumId = args[1];
     const imageId = args[2];
     
-    const albumPath = createPathToAlbum(rootPath, familyId, albumId);
+    const albumPath = createPathToTurn(rootPath, familyId, albumId);
     const imagePath = createPathToImage(rootPath, familyId, albumId, imageId);
     
     const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
@@ -145,7 +145,7 @@ ipcMain.on('page-image-added', async (event, args) => {
     const imagePath = createPathToImage(rootPath, familyId, albumId, imageId);
     fs.writeFileSync(imagePath, file);
     
-    const albumPath = createPathToAlbum(rootPath, familyId, albumId)
+    const albumPath = createPathToTurn(rootPath, familyId, albumId)
     let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     let imagesMap = JSON.parse(imagesMapFile.toString())
     imagesMap["images"].splice(indexOfImage, 0, {
@@ -163,34 +163,47 @@ ipcMain.on('page-image-added', async (event, args) => {
   }
 });
 
-ipcMain.on('create-album', async (event, args) => {
+ipcMain.on('add-turn', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0];
-    const newAlbumIndex = args[1];
+    const newTurnName = args[1];
+    const argsImagePath = args[2];
+
     const newAlbumId = uuidv4();
-    const firstImageId = uuidv4()
-    const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
+    // const firstImageId = uuidv4()
+    // const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
 
-    const albumPath = createPathToAlbum(rootPath, familyId, newAlbumId);
-    const imagePath = createPathToImage(rootPath, familyId, newAlbumId, firstImageId);
-    createPathIfNotExists(albumPath);
-    createPathIfNotExists(path.join(albumPath, "images"));
+    const familyPath = createPathToFamily(rootPath, familyId);
+    const turnPath = createPathToTurn(rootPath, familyId, newAlbumId);
+    const albumsMapPath = path.join(familyPath, "albums_map.json")
+    // const imagePath = createPathToImage(rootPath, familyId, newAlbumId, firstImageId);
+    createPathIfNotExists(turnPath);
+    // createPathIfNotExists(albumsMapPath);
 
-    fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
-    fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
-    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
-    fs.writeFileSync(imagePath, placeHolderImage)
+    // fs.writeFileSync(path.join(turnPath, "albums_map.json"), JSON.stringify({'albums': []}))
+    // createPathIfNotExists(path.join(turnPath, "images"));
+
+    const avatarImage = fs.readFileSync(argsImagePath);
+    const newAlbumAvatarImagePath = path.join(turnPath, 'turnAvatarImage.png') 
+    fs.writeFileSync(newAlbumAvatarImagePath, avatarImage);
+
+    fs.writeFileSync(path.join(turnPath, 'title.txt'), newTurnName);
+    fs.writeFileSync(path.join(turnPath, 'description.txt'), '');
+    fs.writeFileSync(path.join(turnPath, "images_map.json"), JSON.stringify({'images':[]}))
+
+    // fs.writeFileSync(path.join(turnPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
+    // fs.writeFileSync(imagePath, placeHolderImage)
     
     
-    let albumsMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
+    let albumsMapFile = fs.readFileSync(albumsMapPath)
     let albumsMap = JSON.parse(albumsMapFile.toString())
-    albumsMap["albums"].splice(newAlbumIndex, 0, {
+    albumsMap["albums"].splice(0, 0, {
       "id": newAlbumId
     })
 
-    fs.writeFileSync(path.join(rootPath, "albums_map.json"), JSON.stringify(albumsMap))    
-    event.reply('get-album-map', albumsMap["albums"])
+    fs.writeFileSync(albumsMapPath, JSON.stringify(albumsMap))    
+    event.reply('add-turn', albumsMap["albums"])
   }
 })
     
@@ -199,7 +212,7 @@ ipcMain.on('album-description-changed', async (event, args) => {
   if (rootPath != null) {
     const familyId = args[1]
     const albumId = args[2];
-    const contentPath = createPathToAlbum(rootPath, familyId, albumId);
+    const contentPath = createPathToTurn(rootPath, familyId, albumId);
     createPathIfNotExists(contentPath);
     const value = args[3];
 
@@ -260,7 +273,6 @@ ipcMain.on('get-family-gallery-data', async (event, arg) => {
           familiesGalleryData.push({"id": family['id'], name: familyName, imagePath: imagePath})
         // } 
       });
-      console.log("reply to get-family-gallery-data:", familiesGalleryData)
       event.reply('get-family-gallery-data', familiesGalleryData)
     }
   }
@@ -272,8 +284,6 @@ ipcMain.on('add-family', async (event, args) => {
   if(rootPath != null) {
     const familiesMapFilePath = path.join(rootPath, "families_map.json")
     if(fs.existsSync(familiesMapFilePath)) {
-      let familiesGalleryData: {id: string, title: string, imagePath: string}[] = []
-      // familiesMap['families'].
       
       var argsImagePath = args[0]
       var argsFamilyName = args[1]
@@ -296,9 +306,12 @@ ipcMain.on('add-family', async (event, args) => {
         "name": argsFamilyName
       })
 
-      fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify(familiesMap)) 
+      fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify(familiesMap))
       
-      event.reply('add-family', familiesMap["families"])
+      const familyPath = createPathToFamily(rootPath, newFamilyId)
+      fs.writeFileSync(path.join(familyPath, "albums_map.json"), JSON.stringify({"albums": []}))
+      
+      event.reply('add-family', familiesMap['families'])
 
       
       // familiesMap['families'].forEach((familyId: any) => {
@@ -327,26 +340,30 @@ ipcMain.on('add-family', async (event, args) => {
 })
 
 
-ipcMain.on('get-album-gallery-data', async (event, arg) => {
+ipcMain.on('get-turn-gallery-data', async (event, arg) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = arg[0]
-    const albumMapFilePath = path.join(rootPath, "albums_map.json")
+    const familyPath = createPathToFamily(rootPath, familyId)
+    let albumMapFilePath = path.join(familyPath, "albums_map.json")
     if(fs.existsSync(albumMapFilePath)) {
-      let albumMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
-      let albumMap = JSON.parse(albumMapFile.toString())
-      let albumGalleryData: {albumId: string, albumTitle: string, albumDescription: string, imagePath: string}[] = []
-      albumMap['albums'].forEach((albumId: any) => {
-        let albumPath = createPathToAlbum(rootPath, familyId, albumId['id'])
-        let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"));
-        let imagesMap = JSON.parse(imagesMapFile.toString())
-        let imageId = imagesMap["images"][0]['id']
-        let albumTitle = fs.readFileSync(path.join(albumPath, "title.txt")).toString();
-        let albumDescription = fs.readFileSync(path.join(albumPath, "description.txt")).toString();
-    
-        albumGalleryData.push({"albumId": albumId['id'], albumTitle: albumTitle, albumDescription: albumDescription, imagePath: createPathToImage(rootPath, familyId, albumId['id'], imageId)})
+      let turnMapFile = fs.readFileSync(path.join(familyPath, "albums_map.json"))
+      let turnMap = JSON.parse(turnMapFile.toString())
+      let turnGalleryData: {turnId: string, turnName: string, imagePath: string}[] = []
+      console.log("turnMap:", turnMap)
+      turnMap['albums'].forEach((turnId: any) => {
+        const turnPath = createPathToTurn(rootPath, familyId, turnId['id'])
+        const turnAvatarPath = path.join(turnPath, "turnAvatarImage.png")
+        // let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"));
+        // let imagesMap = JSON.parse(imagesMapFile.toString())
+        // let imageId = imagesMap["images"][0]['id']
+        let turnName = fs.readFileSync(path.join(turnPath, "title.txt")).toString();
+        // let turnDescription = fs.readFileSync(path.join(turnPath, "description.txt")).toString();
+        // let turnAvatarImage = fs.readFileSync(path.join(albumPath, "turnAvatarImage.png")).toString();
+        
+        turnGalleryData.push({turnId: turnId['id'], turnName: turnName, imagePath: turnAvatarPath})
       });
-      event.reply('get-album-gallery-data', albumGalleryData)
+      event.reply('get-turn-gallery-data', turnGalleryData)
     }
   }
 })
@@ -360,7 +377,7 @@ ipcMain.on('get-album-title', async (event, args) => {
     if (albumId == null) {
       event.reply('get-album-title',null);  
     } else {
-      const contentPath = createPathToAlbum(rootPath, familyId, albumId);
+      const contentPath = createPathToTurn(rootPath, familyId, albumId);
       const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
       event.reply('get-album-title', fileContent.toString());
     }
@@ -375,7 +392,7 @@ ipcMain.on('get-album-description', async (event, args) => {
     if (albumId == null) {
       event.reply('get-album-description',null);  
     } else {
-      const contentPath = createPathToAlbum(rootPath, familyId, albumId);
+      const contentPath = createPathToTurn(rootPath, familyId, albumId);
       const fileContent = fs.readFileSync(`${contentPath}/description.txt`);
       event.reply('get-album-description', fileContent.toString());
     }
@@ -409,7 +426,7 @@ ipcMain.on('get-album', async (event, args) => {
     if (albumId == null) {
       event.reply('get-album', null);
     } else {
-      const albumPath = createPathToAlbum(rootPath, familyId, albumId);
+      const albumPath = createPathToTurn(rootPath, familyId, albumId);
       const albumExists = fs.existsSync(albumPath);
       if (!albumExists) {
         event.reply('get-album', null);
@@ -443,7 +460,7 @@ ipcMain.on('get-album-images', async (event, args) => {
     const familyId = args[0]
     const albumId = args[1]
  
-    const contentPath = createPathToAlbum(rootPath, familyId, albumId)
+    const contentPath = createPathToTurn(rootPath, familyId, albumId)
     const imagesMapFilePath = path.join(contentPath, "images_map.json")
     if(fs.existsSync(imagesMapFilePath)) {
 
@@ -511,31 +528,10 @@ ipcMain.on('settings-select-path', async (event, args) => {
     let rootPath = dirPathReturnValue.filePaths[0];
     console.log("settings-select-path:", rootPath) 
   
-    console.log("settings-select-path:", doesFamilyFolderExists(rootPath), doesFamilyMapExists(rootPath))
+    console.log("settings-select-path does:", doesFamilyFolderExists(rootPath), doesFamilyMapExists(rootPath))
     if(!doesFamilyFolderExists(rootPath) && !doesFamilyMapExists(rootPath)) {
-      const newFamilyId = uuidv4();
-      // const firstImageId = uuidv4()
-      // const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
-
-      const familyPath = createPathToFamily(rootPath, newFamilyId);
-      // const imagePath = createPathToImage(rootPath, newFamilyId, firstImageId);
-      createPathIfNotExists(familyPath);
-      createPathIfNotExists(path.join(familyPath, "albums"))
-      fs.writeFileSync(path.join(familyPath, "albums_map.json"), JSON.stringify({'albums': []}))
-      // createPathIfNotExists(path.join(familyPath, "images"));
-      console.log("createPathIfNotExists")
-      // fs.writeFileSync(path.join(albumPath, 'title.txt'), '');
-      // fs.writeFileSync(path.join(albumPath, 'description.txt'), '');
-      // fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
-      // fs.writeFileSync(imagePath, placeHolderImage)
-      
-      // let albumsMapFile = fs.readFileSync(path.join(rootPath, "albums_map.json"))
-      // let albumsMap = JSON.parse([{"id": newAlbumId.toString()}]);
-      // albumsMap["albums"].splice(newAlbumIndex, 0, {
-      //   "id": newAlbumId
-      // })
-      
-      fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify({"families":[{"id": newFamilyId.toString()}]}))
+      createPathIfNotExists(path.join(rootPath, "families"))
+      fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify({"families":[]}))
     }
     
     console.log("finished settings select path, dataPath:", rootPath) 

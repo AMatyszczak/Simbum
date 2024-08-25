@@ -1,7 +1,7 @@
 import '../App.css';
 import 'react-quill/dist/quill.snow.css';
-import DescriptionEditor from '../album_components/DescriptionEditor';
-import TitleEditor from '../album_components/TitleEditor';
+import DescriptionEditor from './DescriptionEditor';
+import TitleEditor from './TitleEditor';
 import SettingsButtonComponent from '../settings/SettingsButtonComponent';
 import button_right from '../../../assets/buttons/button_right.png';
 import button_right_plus from '../../../assets/buttons/button_right_plus.png';
@@ -23,7 +23,8 @@ type Album = {
 type LocationState = {
   state: {
     family: {
-      id: string
+      id: string;
+      name: string;
     }
     album: {
       id: string;

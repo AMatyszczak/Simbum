@@ -73,7 +73,7 @@ export default function FamilyGalleryComponent() {
 
     function onFamilyClick(e:any, familyGalleryData: any){
         console.log("onAlbumClick", e, familyGalleryData)
-        navigate("/albumGallery", {state:{family: familyGalleryData}} )    
+        navigate("/turnGallery", {state:{family: familyGalleryData}} )    
         console.log("after navigate")    
     }
 
@@ -98,22 +98,8 @@ export default function FamilyGalleryComponent() {
 
         if (file.type.includes('image/')) {
             setNewFamilyAvatarPath(`${file.path}`);
-
-            // if(pageId != null) {
-            //     window.electron.ipcRenderer.sendMessage('page-image-changed', [
-            //     album.id,
-            //     pageId,
-            //     file.path,
-            //     ]);
-            // }
-            
-            // loadAlbumImages(familyId, album.id, false);
         }
         e.stopPropagation()
-    }
-    
-    function onNewFamilyImageEnd(e: any) {
-        console.log("onNewFamilyImageEnd")
     }
     
     function addNewFamily(e: any) {
@@ -144,8 +130,17 @@ export default function FamilyGalleryComponent() {
                             Dodaj nową rodzinę
                         </Typography>
                     </AppBar>
-                    <TextField value={newFamilyName} onChange={handleNewFamilyNameChange} id="outlined-basic" label="Nazwa" variant="filled" />
-                    <Box display='flex' alignItems='center' justifyContent="center" sx={{width: 400, height: 200, backgroundColor: 'grey'}} onDragOver={onNewFamilyImageOver} onDragEnd={onNewFamilyImageEnd} onDrop={(e) => onNewFamilyImageDrop(e)}> 
+                    <TextField value={newFamilyName}
+                        onChange={handleNewFamilyNameChange}
+                        id="outlined-basic"
+                        label="Nazwa"
+                        variant="filled" />
+                    <Box display='flex' 
+                        alignItems='center'
+                        justifyContent="center"
+                        sx={{width: 400, height: 200, backgroundColor: 'grey'}}
+                        onDragOver={onNewFamilyImageOver} 
+                        onDrop={(e) => onNewFamilyImageDrop(e)}> 
                             {
                                 (newFamilyImagePath != null && newFamilyImagePath.length > 0) ?
                                     <img src={"file://"+ newFamilyImagePath} style={{"maxHeight": "200px"}}></img>                                
