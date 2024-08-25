@@ -13,8 +13,8 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
     super(props);
 
     this.state = {
-      albumId: props.albumId,
-      name: props.albumId,
+      albumId: props.turnId,
+      name: props.turnId,
       text: '',
     };
   }
@@ -22,8 +22,8 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   onTextChanged(text: any) {
     this.setState({ text: text });
     window.electron.ipcRenderer.sendMessage('album-description-changed', [
-      this.props.albumId,
-      this.props.albumId,
+      this.props.turnId,
+      this.props.turnId,
       text,
     ]);
   }
@@ -33,7 +33,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   }
 
   componentDidUpdate(prevProps: PageIdProps) {
-    if (prevProps.albumId != this.props.albumId) {
+    if (prevProps.turnId != this.props.turnId) {
       this.loadData();
     }
   }
@@ -66,7 +66,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
       this.setState({ text: arg });
     });
     window.electron.ipcRenderer.sendMessage('get-album-description', [
-      this.props.albumId,
+      this.props.turnId,
     ]);
   }
 }

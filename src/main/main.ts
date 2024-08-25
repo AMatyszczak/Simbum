@@ -62,8 +62,8 @@ function createPathToImage(rootPath: string, familyId: string, albumId:string, i
   return path.join(rootPath, "families", familyId, "albums", albumId, "images", imageId.concat(".png"));
 }
 
-ipcMain.on('page-image-changed', async (event, args) => {
-  console.log("page-image-changed")
+ipcMain.on('update-turn-image', async (event, args) => {
+  console.log("update-turn-image")
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0];
@@ -93,7 +93,7 @@ ipcMain.on('page-image-changed', async (event, args) => {
   }
 });
 
-ipcMain.on('album-title-changed', async (event, args) => {
+ipcMain.on('update-turn-name', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[1];
@@ -133,19 +133,19 @@ ipcMain.on('page-image-deleted', async (event, args) => {
   }
 });
 
-ipcMain.on('page-image-added', async (event, args) => {
+ipcMain.on('add-turn-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0];
-    const albumId = args[1];
+    const turnId = args[1];
     const indexOfImage = args[2];
     const file = fs.readFileSync(args[3]);
     
     const imageId = uuidv4()
-    const imagePath = createPathToImage(rootPath, familyId, albumId, imageId);
+    const imagePath = createPathToImage(rootPath, familyId, turnId, imageId);
     fs.writeFileSync(imagePath, file);
     
-    const albumPath = createPathToTurn(rootPath, familyId, albumId)
+    const albumPath = createPathToTurn(rootPath, familyId, turnId)
     let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
     let imagesMap = JSON.parse(imagesMapFile.toString())
     imagesMap["images"].splice(indexOfImage, 0, {
@@ -159,7 +159,7 @@ ipcMain.on('page-image-added', async (event, args) => {
       element["path"] = "file://" + path.join(albumPath, "images", element.filename)
     });
 
-    event.reply('get-album-images', imagesMap["images"])
+    event.reply('add-turn-image', imagesMap["images"])
   }
 });
 
@@ -179,6 +179,7 @@ ipcMain.on('add-turn', async (event, args) => {
     const albumsMapPath = path.join(familyPath, "albums_map.json")
     // const imagePath = createPathToImage(rootPath, familyId, newAlbumId, firstImageId);
     createPathIfNotExists(turnPath);
+    createPathIfNotExists(path.join(turnPath, "images"))
     // createPathIfNotExists(albumsMapPath);
 
     // fs.writeFileSync(path.join(turnPath, "albums_map.json"), JSON.stringify({'albums': []}))
@@ -369,17 +370,17 @@ ipcMain.on('get-turn-gallery-data', async (event, arg) => {
 })
 
 
-ipcMain.on('get-album-title', async (event, args) => {
+ipcMain.on('get-turn-name', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0];
     const albumId = args[1];
     if (albumId == null) {
-      event.reply('get-album-title',null);  
+      event.reply('get-turn-name',null);  
     } else {
       const contentPath = createPathToTurn(rootPath, familyId, albumId);
       const fileContent = fs.readFileSync(`${contentPath}/title.txt`);
-      event.reply('get-album-title', fileContent.toString());
+      event.reply('get-turn-name', fileContent.toString());
     }
   }
 });
@@ -418,30 +419,30 @@ ipcMain.on('get-album-page-image', async (event, args) => {
   }
 });
 
-ipcMain.on('get-album', async (event, args) => {
+ipcMain.on('get-turn', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0]
-    const albumId = args[1]
-    if (albumId == null) {
-      event.reply('get-album', null);
+    const turnId = args[1]
+    if (turnId == null) {
+      event.reply('get-turn', null);
     } else {
-      const albumPath = createPathToTurn(rootPath, familyId, albumId);
+      const albumPath = createPathToTurn(rootPath, familyId, turnId);
       const albumExists = fs.existsSync(albumPath);
       if (!albumExists) {
-        event.reply('get-album', null);
+        event.reply('get-turn', null);
       }
       const albumImagesFolderExists = fs.existsSync(path.join(albumPath, "images"));
       if (!albumImagesFolderExists) {
-        event.reply('get-album', null);
+        event.reply('get-turn', null);
       }
       const albumTitleExists = fs.existsSync(path.join(albumPath, 'title.txt'))
       if(!albumTitleExists) {
-        event.reply('get-album', null);
+        event.reply('get-turn', null);
       }
       const albumDescriptionExists = fs.existsSync(path.join(albumPath, 'description.txt'))
       if(!albumDescriptionExists) {
-        event.reply('get-album', null);
+        event.reply('get-turn', null);
       }
       let imagesNamesWithExtensions = fs.readdirSync(path.join(albumPath, "images"))
       imagesNamesWithExtensions = imagesNamesWithExtensions != null ? imagesNamesWithExtensions : []
@@ -449,7 +450,8 @@ ipcMain.on('get-album', async (event, args) => {
       for (let imageName of imagesNamesWithExtensions) {
         imagesNames.push(imageName.split('.')[0])
       }
-      event.reply('get-album', {id: albumId, no: Number(albumId), imagesIds: imagesNames});
+      const title = fs.readFileSync(path.join(albumPath, 'title.txt'))
+      event.reply('get-turn', {id: turnId, title: title, no: Number(turnId), imagesIds: imagesNames});
     }
   }
 });

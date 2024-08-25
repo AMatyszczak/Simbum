@@ -50,7 +50,6 @@ export default function FamilyGalleryComponent() {
     const [newFamilyName, setNewFamilyName] = useState("")
     const [newFamilyImagePath, setNewFamilyAvatarPath] = useState("")
 
-
     const handleNewFamilyNameChange = (e: any) => setNewFamilyName(e.target.value)
 
     const handleOpenNewFamilyModal = () => setNewFamilyModalOpen(true)

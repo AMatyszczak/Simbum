@@ -1,5 +1,5 @@
 import { Add, AddPhotoAlternate, ArrowBack} from "@mui/icons-material";
-import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab } from "@mui/material";
+import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card } from "@mui/material";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { HistoryRouterProps, useLocation, useNavigate } from "react-router-dom";
@@ -63,10 +63,6 @@ export default function TurnGallery() {
     const handleCloseNewTurnModal = () => setNewTurnModalOpen(false)
     const handleReturnToPreviousPage = () => navigate(-1)
 
-    // const [family, setFamily] = useState<{
-    //     id: string, 
-    //     title: string, 
-    //     turns: {id: string, imagePath: string}[]}>({id: "", title: "", turns: []})
 
     useEffect(() => {
         loadTurnGalleryData(location.state.family.id)
@@ -116,10 +112,14 @@ export default function TurnGallery() {
         e.stopPropagation()
     }
 
+    function onTurnClick(e: any, turnGalleryData: any) {
+        console.log("onTurnClick", e, turnGalleryData)
+        navigate("/turn", {state:{turn: turnGalleryData, family:{id: location.state.family.id}}} )    
+    }
+
 
     return(
         <>
-
             <Modal
                 open={newTurnModalOpen}
                 onClose={handleCloseNewTurnModal}
@@ -186,7 +186,9 @@ export default function TurnGallery() {
             <Grid container >
                 {
                 galleryData.map((turn: any) => (
-                    <ButtonBase sx={{margin: 2, maxWidth: 500, flexGrow: 1}}>
+                    <Card sx={{margin: 2, maxWidth: 500, flexGrowi: 1}}
+                            onClick={(e) => onTurnClick(e, turn)}
+                    >
                         <Paper
 
                             sx={{
@@ -215,7 +217,7 @@ export default function TurnGallery() {
                             </Grid> 
                             </Grid>
                         </Paper>
-                    </ButtonBase>
+                    </Card>
                 ))}
             </Grid>
         </>
