@@ -15,11 +15,10 @@ import { ArrowBack, Add, Delete } from '@mui/icons-material';
 import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
 
 
-type Album = {
-  id: string;
-  no: number;
-  imagesIds: string[]
-}
+// type Album = {
+//   no: number;
+//   imagesIds: string[]
+// }
 
 
 type LocationState = {
@@ -43,18 +42,17 @@ export default function TurnComponent() {
   const location = useLocation() as LocationState;
   const familyId: string = location.state.family.id;
   const turnId: string = location.state.turn.turnId;
-  const [turnEventImageId, setTurnEventImageId] = useState<string>('0')
-  const [turnImages, setTurnEventsImages] = useState<{id: string, filename: string, path: string}[]>([])
   
+  const [turnImages, setTurnEventsImages] = useState<{id: string, filename: string, path: string}[]>([])
+  const [turnEventImageId, setTurnEventImageId] = useState<string>("")
+  const [turnEventMainImagePath, setTurnEventMainImagePath] = useState('')
 
-  const [albumNo, setAlbumNo] = useState<number>(0)
   const [pagesLoaded, setPagesLoaded] = useState<boolean>(false)
-  const [displayedImageNo, setDisplayedImageNo] = useState<number>(0)
-  const [turn, setTurn] = useState<Album>({id: "0", no: 0, imagesIds: []})
   const [imageHash, setImageHash] = useState(Date.now())
-  const [currentImagePath, setCurrentImagePath] = useState('')
+  
   const [savedThumbnails, setSavedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
   const [showedThumbnails, setShowedThumbnails] = useState<{path: string, filename: string, id: string}[]>([])
+  
   const [draggedElement, setDraggedElement] = useState<{path: string, filename: string, id: string}>({path: '', filename: '', id: ''})
   const [isDragging, setIsDrawing] = useState(false)
   const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
@@ -63,73 +61,35 @@ export default function TurnComponent() {
 
 
   useEffect(() => {
-    loadTurnById(familyId, turnId)
+    loadTurnById(familyId, turnId, 0)
   }, [])
 
 
-  function loadTurnById(familyId: string, turnId: string) {
+  function loadTurnById(familyId: string, turnId: string, indexOfImageToDisplay: number) {
     window.electron.ipcRenderer.once('get-turn', (arg: any) => {
       console.log("loadTurnById, get-album: arg:", arg)
-      setTurn(turn)
       setPagesLoaded(true)
-      setDisplayedImageNo(0)
+      console.log("loadTurnById, displayedImageNo", indexOfImageToDisplay)
+      loadTurnImages(familyId, turnId, indexOfImageToDisplay)
 
-      loadTurnImages(familyId, turnId, true)
     });
     window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turnId]);  
   }
 
-  function loadTurnByIndex(index: number) {
-    window.electron.ipcRenderer.once('get-turn', (arg: any) => {
-      console.log("loadTurnByIndex get-album, index:", index, "arg:", arg)
-      
-      setTurn(arg) 
-      setPagesLoaded(true)
-      setDisplayedImageNo(0)
-      // setAlbumNo(index)
-      loadTurnImages(familyId, arg.id, true)
-    });
-    window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turn.id]);  
-  }
-
   function onNextTurnClick() {
-    if (isLastImageDisplayed()) {
-      createNewTurn(albumNo + 1);
-    } else {
-      loadTurnByIndex(albumNo + 1);
-    }
+    // loadTurnByIndex(albumNo + 1);
   }
 
   function onPrevTurnClick() {
-    if (isFirstImageDisplayed()) {
-      createNewTurn(albumNo);
-    } else {
-      loadTurnByIndex(albumNo - 1);
-    }
-  }
-
-  function createNewTurn(index: number) {
-    window.electron.ipcRenderer.once('get-album-map', (arg: any) => {
-      loadTurnById(familyId, arg[index].id)
-      loadTurnImages(familyId, arg[index].id, true)
-    })
-    window.electron.ipcRenderer.sendMessage('create-album', [index]);
-  }
-
-  function isLastImageDisplayed(): boolean {
-    return showedThumbnails.length - 1 <= displayedImageNo
-  }
-
-  function isFirstImageDisplayed(): boolean {
-    return displayedImageNo <= 0 
+    // loadTurnByIndex(albumNo - 1);
   }
 
   function deleteCurrentPage(): any {
     console.log("deleteCurrentPage click: length:", turnImages.length)
     if(turnImages.length >= 1) {
-      console.log("deleteCurrentPage albumId:", turn.id, "pageId:", turnEventImageId)
-      window.electron.ipcRenderer.sendMessage('page-image-deleted', [turn.id, turnEventImageId]);
-      loadTurnImages(familyId, turn.id, true)
+      console.log("deleteCurrentPage albumId:", turnId, "pageId:", turnEventImageId)
+      window.electron.ipcRenderer.sendMessage('page-image-deleted', [turnId, turnEventImageId]);
+      loadTurnImages(familyId, turnId, true)
     }
   }
   
@@ -141,9 +101,10 @@ export default function TurnComponent() {
     const file = e.dataTransfer.files.item(0);
 
     if (file.type.includes('image/')) {
-      setCurrentImagePath(`file://${file.path}`);
+      setTurnEventMainImagePath(`file://${file.path}`);
 
-      if(turnImages.length > 0) {
+      console.log("handleDropOnMainImage, turnImages", turnImages, 'rurnEventImageId:', turnEventImageId)
+      if(turnImages.length == 0) {
         window.electron.ipcRenderer.sendMessage('add-turn-image', [
           familyId,
           turnId,
@@ -151,17 +112,17 @@ export default function TurnComponent() {
           file.path
         ])
       } else {
-        if(turnEventImageId != null) {
+        if(turnEventImageId != null && turnEventImageId != "") {
           window.electron.ipcRenderer.sendMessage('update-turn-image', [
+            familyId,
             turnId,
             turnEventImageId,
-            0,
             file.path,
           ]);
         }
       }
       
-      loadTurnImages(familyId, turn.id, false);
+      loadTurnById(familyId, turnId, 0)
     }
     e.stopPropagation()
   }
@@ -176,16 +137,14 @@ export default function TurnComponent() {
     setIsDrawing(false)
     const file = e.dataTransfer.files.item(0);
     if (file.type.includes('image/')) {
-      window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-        loadTurnImages(familyId, turn.id, false);
-      }); 
-      
-      window.electron.ipcRenderer.sendMessage('update-turn-image', [
-        turn.id,
+      window.electron.ipcRenderer.sendMessage('add-turn-image', [
+        familyId,
+        turnId,
         indexOfDraggedElement,
         file.path
       ])
-
+      
+      loadTurnById(familyId, turnId, indexOfDraggedElement)
     } 
     e.stopPropagation();
   }; 
@@ -261,41 +220,34 @@ export default function TurnComponent() {
     return postionOfImage
   }
 
-  function loadTurnImages(familyId: string, albumId: string, showFirstPage: boolean) {
+  function loadTurnImages(familyId: string, turnId: string, indexOfImageToDisplay: number) {
     window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-      console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
+      // console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
-      console.log("loadAlbumImages, thumbnails:", thumbnails)
+      // console.log("loadAlbumImages, thumbnails:", thumbnails)
       if(thumbnails.length >0) {
-        if(showFirstPage === true) {
-          setImageHash(Date.now())
-          setTurnEventImageId(thumbnails[0].id)
-          setCurrentImagePath(thumbnails[0].path)
-          setTurnEventsImages(thumbnails)
-          setSavedThumbnails(thumbnails)
-          setShowedThumbnails(thumbnails)
-        } else {
-          setImageHash(Date.now())
-          setTurnEventsImages(thumbnails)
-          setSavedThumbnails(thumbnails)
-          setShowedThumbnails(thumbnails)
-        }
+        setImageHash(Date.now())
+        setTurnEventImageId(thumbnails[indexOfImageToDisplay].id)
+        setTurnEventMainImagePath(thumbnails[indexOfImageToDisplay].path)
+        setTurnEventsImages(thumbnails)
+        setSavedThumbnails(thumbnails)
+        setShowedThumbnails(thumbnails)
       } else {
-          setCurrentImagePath("")
+          setTurnEventMainImagePath("")
           setTurnEventsImages([])
           setSavedThumbnails([])
           setShowedThumbnails([])
       }
     });
-    window.electron.ipcRenderer.sendMessage('get-album-images', [familyId, albumId]);
+    window.electron.ipcRenderer.sendMessage('get-album-images', [familyId, turnId]);
   }
 
-  function moveToPage(pageId: string) {
+  function displayTurnEventImage(pageId: string) {
     const pageNo: any = turnImages.findIndex((e: any) => e.id == pageId.toString())
 
     if(pageNo != -1) {
       setTurnEventImageId(turnImages[pageNo].id)
-      setCurrentImagePath(turnImages[pageNo].path)
+      setTurnEventMainImagePath(turnImages[pageNo].path)
     }
   }
 
@@ -323,14 +275,12 @@ export default function TurnComponent() {
                 size="large"
                 edge="start"
                 color="inherit"
-                aria-label="go back"
+                aria-label="Delete"
                 sx={{ mr: 2 }}
                 // onClick={handleReturnToPreviousPage}
             >
                 <Delete />
             </IconButton>
-            
-            
             <Typography
                 variant="h6"
                 noWrap
@@ -355,7 +305,7 @@ export default function TurnComponent() {
                 type="button"
               >
                 <img
-                  src={isLastImageDisplayed() ? button_left_plus : button_left}
+                  src={button_left}
                   className="button-image"
                   alt=""
                   onClick={onNextTurnClick}
@@ -370,7 +320,7 @@ export default function TurnComponent() {
                 <img
                   draggable="false"
                   className="album-image"
-                  src={`${(currentImagePath || placeholder)}?${imageHash})`}
+                  src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
                   alt=""
                 />
               </div>
@@ -379,9 +329,7 @@ export default function TurnComponent() {
                 type="button"
               >
                 <img
-                  src={
-                    isFirstImageDisplayed() ? button_right_plus : button_right
-                  }
+                  src={button_right}
                   className="button-image"
                   alt=""
                   onClick={onPrevTurnClick}
@@ -404,14 +352,14 @@ export default function TurnComponent() {
                         src={`${thumbnail.path}?${imageHash}`}
                         key={thumbnail.id} 
                         className={isDragging ? "album-image-thumbnail thumbnail-drag-overlay" : "album-image-thumbnail"} 
-                        onClick={(e) => moveToPage(thumbnail.id)}
+                        onClick={(e) => displayTurnEventImage(thumbnail.id)}
                       />
                     </div>
                   ))
                 }
               </div>
           </div>
-          <DescriptionEditor turnId={turn.id} />
+          <DescriptionEditor turnId={turnId} />
         </div>
       </>
     );

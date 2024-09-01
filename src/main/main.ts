@@ -63,32 +63,34 @@ function createPathToImage(rootPath: string, familyId: string, albumId:string, i
 }
 
 ipcMain.on('update-turn-image', async (event, args) => {
-  console.log("update-turn-image")
+  console.log('update-turn-image, args:', args)
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
     const familyId = args[0];
-    const albumId = args[1];
+    const turnId = args[1];
     const imageId = args[2];
-    const file = fs.readFileSync(args[2]);
+    const file = fs.readFileSync(args[3]);
+    console.log('familyId:', familyId, "turnId:", turnId, "imageId:", imageId)
+    
+    const turnPath = createPathToTurn(rootPath, familyId, turnId);
+    console.log("update-turn-image, turnPath:", turnPath)
+    const imagePath = createPathToImage(rootPath, familyId, turnId, imageId);
 
-    const albumPath = createPathToTurn(rootPath, familyId, albumId);
-    const imagePath = createPathToImage(rootPath, familyId, albumId, imageId);
-
-    const imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
-    const imagesMap = JSON.parse(imagesMapFile.toString())
+    const imagesMapFile = fs.readFileSync(path.join(turnPath, "images_map.json"))
+    const imagesMap = JSON.parse(imagesMapFile.toString()) 
     const index = imagesMap["images"].findIndex((imgJson: {id: string; filename: string }) => imgJson.id == imageId, 0)
-
+    console.log('update-turn-image, index:', index)
     if(index == -1) {
       console.log("page-image-changed added missing image file")
       imagesMap["images"].splice(0, 0, {
         "id": imageId,
         "filename": imageId + ".png"
       })
-      fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify(imagesMap))
+      fs.writeFileSync(path.join(turnPath, "images_map.json"), JSON.stringify(imagesMap))
 
     }
 
-    console.log("page-image-changed", rootPath, albumId, imageId)
+    console.log("page-image-changed", rootPath, turnId, imageId)
     fs.writeFileSync(imagePath, file);
   }
 });
@@ -139,24 +141,25 @@ ipcMain.on('add-turn-image', async (event, args) => {
     const familyId = args[0];
     const turnId = args[1];
     const indexOfImage = args[2];
+    console.log('add-turn-image, args', args)
     const file = fs.readFileSync(args[3]);
     
     const imageId = uuidv4()
     const imagePath = createPathToImage(rootPath, familyId, turnId, imageId);
     fs.writeFileSync(imagePath, file);
     
-    const albumPath = createPathToTurn(rootPath, familyId, turnId)
-    let imagesMapFile = fs.readFileSync(path.join(albumPath, "images_map.json"))
+    const turnPath = createPathToTurn(rootPath, familyId, turnId)
+    let imagesMapFile = fs.readFileSync(path.join(turnPath, "images_map.json"))
     let imagesMap = JSON.parse(imagesMapFile.toString())
     imagesMap["images"].splice(indexOfImage, 0, {
       "id": imageId,
       "filename": imageId + ".png"
     })
 
-    fs.writeFileSync(path.join(albumPath, "images_map.json"), JSON.stringify(imagesMap))
+    fs.writeFileSync(path.join(turnPath, "images_map.json"), JSON.stringify(imagesMap))
     
     imagesMap["images"].forEach((element: any) => {
-      element["path"] = "file://" + path.join(albumPath, "images", element.filename)
+      element["path"] = "file://" + path.join(turnPath, "images", element.filename)
     });
 
     event.reply('add-turn-image', imagesMap["images"])
