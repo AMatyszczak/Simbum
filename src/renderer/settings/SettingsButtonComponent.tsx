@@ -19,7 +19,7 @@ export default class SettingsButtonComponent extends React.Component <ToolbarCom
 
   render () {
     return (
-      <div className="album-toolbar">
+      <div className="turn-toolbar">
         <button type="button" className="button">
           <Link to="/settings">
             <img src={settings_icon} className="settings-icon" alt="" />

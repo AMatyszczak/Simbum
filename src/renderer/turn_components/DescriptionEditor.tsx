@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import { PageIdProps } from './PageIdProps';
 
 interface DescriptionState {
-  albumId: string;
+  turnId: string;
   name: string;
   text: string;
 }
@@ -13,7 +13,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
     super(props);
 
     this.state = {
-      albumId: props.turnId,
+      turnId: props.turnId,
       name: props.turnId,
       text: '',
     };
@@ -21,7 +21,7 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
 
   onTextChanged(text: any) {
     this.setState({ text: text });
-    window.electron.ipcRenderer.sendMessage('album-description-changed', [
+    window.electron.ipcRenderer.sendMessage('turn-description-changed', [
       this.props.turnId,
       this.props.turnId,
       text,
@@ -47,14 +47,14 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
 
   render() {
     return (
-      <div className="album-image-description-container">
-        <div className="album-image-description-scrollbar">
+      <div className="turn-image-description-container">
+        <div className="turn-image-description-scrollbar">
           <ReactQuill
             theme="snow"
             value={this.state.text}
             onChange={(v) => this.onTextChanged(v)}
             modules={this.modules}
-            className="album-image-description-content"
+            className="turn-image-description-content"
           />
         </div>
       </div>
@@ -62,10 +62,10 @@ class DescriptionEditor extends React.Component<PageIdProps, DescriptionState> {
   }
 
   private loadData() {
-    window.electron.ipcRenderer.once('get-album-description', (arg: any) => {
+    window.electron.ipcRenderer.once('get-turn-description', (arg: any) => {
       this.setState({ text: arg });
     });
-    window.electron.ipcRenderer.sendMessage('get-album-description', [
+    window.electron.ipcRenderer.sendMessage('get-turn-description', [
       this.props.turnId,
     ]);
   }

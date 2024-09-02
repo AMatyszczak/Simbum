@@ -71,13 +71,13 @@ export default function FamilyGalleryComponent() {
     }
 
     function onFamilyClick(e:any, familyGalleryData: any){
-        console.log("onAlbumClick", e, familyGalleryData)
+        console.log("onTurnClick", e, familyGalleryData)
         navigate("/turnGallery", {state:{family: familyGalleryData}} )    
         console.log("after navigate")    
     }
 
-    function onAlbumRemoveClick(e: any, albumData: any) {
-        console.log("onFamilyRemoveClick", e, albumData)
+    function onTurnRemoveClick(e: any, turnData: any) {
+        console.log("onFamilyRemoveClick", e, turnData)
         e.stopPropagation(); 
     }
 
@@ -216,15 +216,15 @@ export default function FamilyGalleryComponent() {
                                     <Grid item xs container direction="column" spacing={2}>
                                         <Grid item xs>
                                             <Typography gutterBottom variant="subtitle1" component="div">
-                                                {data["albumTitle"]}
+                                                {data["turnTitle"]}
                                             </Typography>
                                             <Typography variant="body2" gutterBottom>
-                                                {data["albumDescription"]}
+                                                {data["turnDescription"]}
                                             </Typography>
                                         </Grid>
                                         <ButtonBase>
                                             <Grid item>
-                                                <Typography  variant="body2" onMouseDown={(e) => onAlbumRemoveClick(e, data)}>
+                                                <Typography  variant="body2" onMouseDown={(e) => onTurnRemoveClick(e, data)}>
                                                     Remove
                                                 </Typography>
                                             </Grid>

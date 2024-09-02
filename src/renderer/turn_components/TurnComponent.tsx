@@ -8,17 +8,12 @@ import button_right_plus from '../../../assets/buttons/button_right_plus.png';
 import button_left from '../../../assets/buttons/button_left.png';
 import button_left_plus from '../../../assets/buttons/button_left_plus.png';
 import placeholder from '../../../assets/img_placeholder.png';
+import SettingsIcon from '@mui/icons-material/Settings';
 import 'react-quill/dist/quill.snow.css';
 import React, { useEffect, useState } from 'react';
 import { Link, Location, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowBack, Add, Delete } from '@mui/icons-material';
-import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material';
-
-
-// type Album = {
-//   no: number;
-//   imagesIds: string[]
-// }
+import { AppBar, Toolbar, IconButton, Typography, Box, Button } from '@mui/material';
 
 
 type LocationState = {
@@ -67,7 +62,7 @@ export default function TurnComponent() {
 
   function loadTurnById(familyId: string, turnId: string, indexOfImageToDisplay: number) {
     window.electron.ipcRenderer.once('get-turn', (arg: any) => {
-      console.log("loadTurnById, get-album: arg:", arg)
+      console.log("loadTurnById, get-turn: arg:", arg)
       setPagesLoaded(true)
       console.log("loadTurnById, displayedImageNo", indexOfImageToDisplay)
       loadTurnImages(familyId, turnId, indexOfImageToDisplay)
@@ -77,19 +72,21 @@ export default function TurnComponent() {
   }
 
   function onNextTurnClick() {
-    // loadTurnByIndex(albumNo + 1);
+    // loadTurnByIndex(turnNo + 1);
   }
 
   function onPrevTurnClick() {
-    // loadTurnByIndex(albumNo - 1);
+    // loadTurnByIndex(turnNo - 1);
   }
 
-  function deleteCurrentPage(): any {
+  function deleteMainEventImage(): any {
     console.log("deleteCurrentPage click: length:", turnImages.length)
     if(turnImages.length >= 1) {
-      console.log("deleteCurrentPage albumId:", turnId, "pageId:", turnEventImageId)
-      window.electron.ipcRenderer.sendMessage('page-image-deleted', [turnId, turnEventImageId]);
-      loadTurnImages(familyId, turnId, true)
+      console.log("deleteCurrentPage familyId:", familyId, "turnId:", turnId, "pageId:", turnEventImageId)
+      window.electron.ipcRenderer.sendMessage('page-image-deleted', [familyId, turnId, turnEventImageId]);
+      
+      // const eventImageIndexToShow = showe
+      loadTurnImages(familyId, turnId, 0) // what if I remove last image?
     }
   }
   
@@ -129,7 +126,7 @@ export default function TurnComponent() {
 
   function handleDropOnThumbnails(e: any) {
     e.preventDefault()
-    if(e.target.className == "album-image-thumbnail-container" || e.target.className == "album-image-thumbnail-list") {
+    if(e.target.className == "turn-image-thumbnail-container" || e.target.className == "turn-image-thumbnail-list") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails]) 
     }
@@ -153,7 +150,7 @@ export default function TurnComponent() {
     e.preventDefault();
 
     if (isDragging) {
-      let parentElement: any = e.target.className == 'album-image-thumbnail-list' ? e.target : e.target.parentElement
+      let parentElement: any = e.target.className == 'turn-image-thumbnail-list' ? e.target : e.target.parentElement
 
       const postionOfImageOnThumbnails = determinePositionOfImage(parentElement, e.clientX, false)
 
@@ -171,7 +168,7 @@ export default function TurnComponent() {
   function handleLeave(e: any) {
     e.preventDefault();
 
-    if(isDragging && e.relatedTarget.className != "album-image-thumbnail-container" && e.relatedTarget.className != "album-image-thumbnail-list") {
+    if(isDragging && e.relatedTarget.className != "turn-image-thumbnail-container" && e.relatedTarget.className != "turn-image-thumbnail-list") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails])
       setIndexOfDraggedElement(-1)
@@ -183,7 +180,7 @@ export default function TurnComponent() {
   function handleDragEnter(e: any) {
     e.preventDefault();
 
-    if (e.target.parentElement.className == "album-image-thumbnail-list" && !isDragging) {
+    if (e.target.parentElement.className == "turn-image-thumbnail-list" && !isDragging) {
       const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientX, false)
       
       let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
@@ -221,10 +218,10 @@ export default function TurnComponent() {
   }
 
   function loadTurnImages(familyId: string, turnId: string, indexOfImageToDisplay: number) {
-    window.electron.ipcRenderer.once('get-album-images', (arg: any) => {
-      // console.log("loadAlbumImages get-album-images, arg:", arg, "albumId:", albumId )
+    window.electron.ipcRenderer.once('get-turn-images', (arg: any) => {
+      // console.log("loadTurnImages get-turn-images, arg:", arg, "turnId:", turnId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
-      // console.log("loadAlbumImages, thumbnails:", thumbnails)
+      // console.log("loadTurnImages, thumbnails:", thumbnails)
       if(thumbnails.length >0) {
         setImageHash(Date.now())
         setTurnEventImageId(thumbnails[indexOfImageToDisplay].id)
@@ -239,7 +236,7 @@ export default function TurnComponent() {
           setShowedThumbnails([])
       }
     });
-    window.electron.ipcRenderer.sendMessage('get-album-images', [familyId, turnId]);
+    window.electron.ipcRenderer.sendMessage('get-turn-images', [familyId, turnId]);
   }
 
   function displayTurnEventImage(pageId: string) {
@@ -254,30 +251,26 @@ export default function TurnComponent() {
   if (!pagesLoaded) {return <div className='loader'/>}
   else
     return (
-      <>
-
+      <Box sx={{ flexGrow: 1 }}>
         <AppBar position="static" color='primary'>
-            <Toolbar variant='dense'>
+            <Toolbar>
             
             <IconButton
                 size="large"
                 edge="start"
                 color="inherit"
                 aria-label="go back"
-                sx={{ mr: 2 }}
                 onClick={handleReturnToPreviousPage}
             >
                 <ArrowBack />
             </IconButton>
-            
-            
+          
+           
             <IconButton
                 size="large"
-                edge="start"
                 color="inherit"
                 aria-label="Delete"
-                sx={{ mr: 2 }}
-                // onClick={handleReturnToPreviousPage}
+                onClick={deleteMainEventImage}
             >
                 <Delete />
             </IconButton>
@@ -285,23 +278,30 @@ export default function TurnComponent() {
                 variant="h6"
                 noWrap
                 component="div"
-                sx={{ display: { xs: 'none', sm: 'block' } }}
-                align="center"
+                sx={{ flexGrow: 1 }}
             >
                 Tury {location.state.family.name}
             </Typography>
-            <Box sx={{ flexGrow: 1 }} />
+            <IconButton
+                size="large"
+                color="inherit"
+                // aria-label="Delete"
+                
+                // onClick={deleteMainEventImage}
+            >
+                <SettingsIcon />
+            </IconButton>
             </Toolbar>
         </AppBar>
 
 
         {/* <SettingsButtonComponent onTrashClick={deleteCurrentPage} /> */}
-        <div className="album-content">
+        <div className="turn-content">
           <TurnNameEditor familyId={familyId} turnId={turnId} />
           <div className='image-viewer-view'>        
-            <div className="album-images-controller">
+            <div className="turn-images-controller">
               <button
-                className="next-album-image-button"
+                className="next-turn-image-button"
                 type="button"
               >
                 <img
@@ -313,19 +313,19 @@ export default function TurnComponent() {
                 />
               </button>
               <div
-                className="album-image-container"
+                className="turn-image-container"
                 onDrop={(e) => handleDropOnMainImage(e)}
                 onDragOver={(e) => handleDragOver(e)}
               >
                 <img
                   draggable="false"
-                  className="album-image"
+                  className="turn-image"
                   src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
                   alt=""
                 />
               </div>
               <button
-                className="prev-album-image-button"
+                className="prev-turn-image-button"
                 type="button"
               >
                 <img
@@ -338,7 +338,7 @@ export default function TurnComponent() {
 
               </button>
             </div>
-            <div className='album-image-thumbnail-list' 
+            <div className='turn-image-thumbnail-list' 
               onDragEnter={(e) => handleDragEnter(e)} 
               onDragLeave={(e) => handleLeave(e)} 
               onDragOver={(e) => handleDragOver(e)}
@@ -346,12 +346,12 @@ export default function TurnComponent() {
               >
                 {
                   showedThumbnails.map((thumbnail) => (
-                    <div className='album-image-thumbnail-container'>
+                    <div className='turn-image-thumbnail-container'>
                       <img 
                         draggable="false"
                         src={`${thumbnail.path}?${imageHash}`}
                         key={thumbnail.id} 
-                        className={isDragging ? "album-image-thumbnail thumbnail-drag-overlay" : "album-image-thumbnail"} 
+                        className={isDragging ? "turn-image-thumbnail thumbnail-drag-overlay" : "turn-image-thumbnail"} 
                         onClick={(e) => displayTurnEventImage(thumbnail.id)}
                       />
                     </div>
@@ -361,6 +361,7 @@ export default function TurnComponent() {
           </div>
           <DescriptionEditor turnId={turnId} />
         </div>
-      </>
+
+      </Box>
     );
   }

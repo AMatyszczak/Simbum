@@ -3,10 +3,10 @@ import './App.css';
 import 'react-quill/dist/quill.snow.css';
 import SettingsComponent from './settings/SettingsComponent';
 import React from 'react';
-import TurnComponent from './album_components/TurnComponent';
+import TurnComponent from './turn_components/TurnComponent';
 import LoadingComponent from './loading_component/LoadingComponent';
-import FamilyGalleryComponent from './album_components/FamilyGalleryComponent';
-import TurnGallery from './album_components/TurnGallery';
+import FamilyGalleryComponent from './turn_components/FamilyGalleryComponent';
+import TurnGallery from './turn_components/TurnGallery';
 
 interface SimbumState {
   isComponentMounted: boolean;

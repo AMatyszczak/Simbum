@@ -33,7 +33,7 @@ export default function TurnNameEditor(props: any) {
 
   return (
     <input
-      className="album-title-content"
+      className="turn-title-content"
       type="text"
       spellCheck="false"
       value={text}

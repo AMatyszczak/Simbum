@@ -1,5 +1,5 @@
 import { Add, AddPhotoAlternate, ArrowBack} from "@mui/icons-material";
-import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card } from "@mui/material";
+import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { HistoryRouterProps, useLocation, useNavigate } from "react-router-dom";
@@ -151,36 +151,38 @@ export default function TurnGallery() {
             <AppBar position="static" color='primary'>
                 <Toolbar variant='dense'>
                 
-                <IconButton
-                    size="large"
-                    edge="start"
-                    color="inherit"
-                    aria-label="go back"
-                    sx={{ mr: 2 }}
-                    onClick={handleReturnToPreviousPage}
-                >
-                    <ArrowBack />
-                </IconButton>
-                <IconButton
-                    size="large"
-                    edge="start"
-                    color="inherit"
-                    aria-label="add family"
-                    sx={{ mr: 2 }}
-                    onClick={handleOpenNewTurnModal}
-                >
-                    <Add />
-                </IconButton>
-                <Typography
-                    variant="h6"
-                    noWrap
-                    component="div"
-                    sx={{ display: { xs: 'none', sm: 'block' } }}
-                    align="center"
-                >
-                    Tury {location.state.family.name}
-                </Typography>
-                <Box sx={{ flexGrow: 1 }} />
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="go back"
+                        sx={{ mr: 2 }}
+                        onClick={handleReturnToPreviousPage}
+                    >
+                        <ArrowBack />
+                    </IconButton>
+                    <IconButton
+                        size="large"
+                        edge="start"
+                        color="inherit"
+                        aria-label="add family"
+                        sx={{ mr: 2 }}
+                        onClick={handleOpenNewTurnModal}
+                    >
+                        <Add />
+                    </IconButton>
+                    <Typography
+                        variant="h6"
+                        noWrap
+                        component="div"
+                        sx={{ display: { xs: 'none', sm: 'block' } }}
+                        align="center"
+                    >
+                        Tury {location.state.family.name}
+                    </Typography>
+                    {/* <Box sx={{ flexGrow: 1 }} /> */}
+
+                    <Button color='inherit'>Login</Button>
                 </Toolbar>
             </AppBar>
             <Grid container >
