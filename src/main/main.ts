@@ -16,7 +16,6 @@ import fs from 'fs';
 import Store, { Schema } from 'electron-store';
 import { resolveHtmlPath } from './util';
 import { v4 as uuidv4 } from 'uuid';
-// import placeholder from 'img_placeholder.png';
 
 
 interface UserPreferences {
@@ -298,7 +297,6 @@ ipcMain.on('add-family', async (event, args) => {
       const newFamilyPath = createPathToFamily(rootPath, newFamilyId);
       createPathIfNotExists(newFamilyPath);
       
-      const placeHolderImage = fs.readFileSync("assets/img_placeholder.png");
       const avatarImage = fs.readFileSync(argsImagePath);
       const newFamilyAvatarImagePath = path.join(newFamilyPath, 'familyCoverImage.png') 
       fs.writeFileSync(newFamilyAvatarImagePath, avatarImage);

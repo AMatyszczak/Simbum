@@ -98,7 +98,7 @@ export default function FamilyGalleryComponent() {
         const file = e.dataTransfer.files.item(0);
 
         if (file.type.includes('image/')) {
-            setNewFamilyAvatarPath(`${file.path}`);
+            setNewFamilyAvatarPath(file.path);
         }
         e.stopPropagation()
     }

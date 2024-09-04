@@ -83,7 +83,7 @@ export default function TurnComponent() {
   }
 
   function isFirstTurnDisplayed(): boolean {
-    // console.log("isFirstTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex<= 0)
+    console.log("isFirstTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex<= 0)
     return turnIndex <= 0
   }
 
@@ -208,7 +208,7 @@ export default function TurnComponent() {
       
       let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
       let ele = {
-        path: "file:///home/adrian/Desktop/SimBumStaff/img_placeholder.png",
+        path: placeholder,
         filename: "",
         id: "69",
       }
