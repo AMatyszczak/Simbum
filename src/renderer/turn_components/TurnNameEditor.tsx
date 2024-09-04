@@ -17,8 +17,9 @@ export default function TurnNameEditor(props: any) {
     // if (prevProps.turnId != this.props.turnId) {
     //   loadData();
     // }
+    console.log("TurnNameEditor:", props)
     loadData();
-  }, [])
+  }, [props])
 
   function onTextChanged(event: any) {
     const eventText = event.target.value;

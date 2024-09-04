@@ -1,4 +1,5 @@
 import { Add, AddPhotoAlternate, ArrowBack} from "@mui/icons-material";
+import SettingsIcon from '@mui/icons-material/Settings';
 import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button } from "@mui/material";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
@@ -113,13 +114,18 @@ export default function TurnGallery() {
     }
 
     function onTurnClick(e: any, turnGalleryData: any) {
-        console.log("onTurnClick", e, turnGalleryData)
-        navigate("/turn", {state:{turn: turnGalleryData, family:{id: location.state.family.id}}} )    
+        // console.log("turnGalleryData", turnGalleryData)
+        const allTurnsIds = galleryData.map((data: any) => data.turnId)
+        console.log("allTurnsIds", allTurnsIds)
+        navigate("/turn", {state:{allTurnsIds: allTurnsIds, turn: turnGalleryData, family:{id: location.state.family.id}}} ) 
     }
 
+    function navigateToSettings() {
+        navigate("/settings")
+    }
 
     return(
-        <>
+        <Box sx={{ flexGrow: 1 }}>
             <Modal
                 open={newTurnModalOpen}
                 onClose={handleCloseNewTurnModal}
@@ -175,14 +181,19 @@ export default function TurnGallery() {
                         variant="h6"
                         noWrap
                         component="div"
-                        sx={{ display: { xs: 'none', sm: 'block' } }}
-                        align="center"
+                        sx={{ display: { xs: 'none', sm: 'block' }, flexGrow: 1}}
                     >
                         Tury {location.state.family.name}
                     </Typography>
-                    {/* <Box sx={{ flexGrow: 1 }} /> */}
 
-                    <Button color='inherit'>Login</Button>
+                    <IconButton
+                        size="large"
+                        color="inherit"
+                        aria-label="Settings"
+                        onClick={navigateToSettings}
+                    >
+                        <SettingsIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
             <Grid container >
@@ -222,6 +233,6 @@ export default function TurnGallery() {
                     </Card>
                 ))}
             </Grid>
-        </>
+        </Box>
     )
 }

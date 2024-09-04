@@ -21,7 +21,8 @@ type LocationState = {
     family: {
       id: string;
       name: string;
-    }
+    },
+    allTurnsIds: string[],
     turn: {
       turnId: string;
       title: string;
@@ -36,8 +37,10 @@ export default function TurnComponent() {
   const navigate = useNavigate();
   const location = useLocation() as LocationState;
   const familyId: string = location.state.family.id;
-  const turnId: string = location.state.turn.turnId;
+  const allturnsIds: string[] = location.state.allTurnsIds;
   
+  const [turnId, setTurnId] = useState<string>(location.state.turn.turnId)
+  const [turnIndex, setTurnIndex] = useState<number>(0)
   const [turnImages, setTurnEventsImages] = useState<{id: string, filename: string, path: string}[]>([])
   const [turnEventImageId, setTurnEventImageId] = useState<string>("")
   const [turnEventMainImagePath, setTurnEventMainImagePath] = useState('')
@@ -56,27 +59,34 @@ export default function TurnComponent() {
 
 
   useEffect(() => {
+    const turnIndex: number = allturnsIds.findIndex((id: string) => id == turnId)
+    setTurnIndex(turnIndex)
     loadTurnById(familyId, turnId, 0)
   }, [])
 
 
   function loadTurnById(familyId: string, turnId: string, indexOfImageToDisplay: number) {
+    console.log("TurnComponent, loadTurnById", turnId)
+    setTurnId(turnId)
     window.electron.ipcRenderer.once('get-turn', (arg: any) => {
       console.log("loadTurnById, get-turn: arg:", arg)
       setPagesLoaded(true)
       console.log("loadTurnById, displayedImageNo", indexOfImageToDisplay)
       loadTurnImages(familyId, turnId, indexOfImageToDisplay)
-
     });
     window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turnId]);  
   }
 
   function onNextTurnClick() {
-    // loadTurnByIndex(turnNo + 1);
+    const nextIndex: number = turnIndex + 1 
+    setTurnIndex(nextIndex)
+    loadTurnById(familyId, allturnsIds[nextIndex], 0);
   }
 
   function onPrevTurnClick() {
-    // loadTurnByIndex(turnNo - 1);
+    const nextIndex: number = turnIndex - 1
+    setTurnIndex(nextIndex)
+    loadTurnById(familyId, allturnsIds[nextIndex], 0);
   }
 
   function deleteMainEventImage(): any {
@@ -248,54 +258,54 @@ export default function TurnComponent() {
     }
   }
 
+  function navigateToSettings() {
+    navigate("/settings")
+  }
+
   if (!pagesLoaded) {return <div className='loader'/>}
   else
     return (
       <Box sx={{ flexGrow: 1 }}>
         <AppBar position="static" color='primary'>
-            <Toolbar>
+            <Toolbar variant='dense'>
+              <IconButton
+                  size="large"
+                  edge="start"
+                  color="inherit"
+                  aria-label="go back"
+                  onClick={handleReturnToPreviousPage}
+              >
+                  <ArrowBack />
+              </IconButton>
             
-            <IconButton
-                size="large"
-                edge="start"
-                color="inherit"
-                aria-label="go back"
-                onClick={handleReturnToPreviousPage}
-            >
-                <ArrowBack />
-            </IconButton>
-          
-           
-            <IconButton
-                size="large"
-                color="inherit"
-                aria-label="Delete"
-                onClick={deleteMainEventImage}
-            >
-                <Delete />
-            </IconButton>
-            <Typography
-                variant="h6"
-                noWrap
-                component="div"
-                sx={{ flexGrow: 1 }}
-            >
-                Tury {location.state.family.name}
-            </Typography>
-            <IconButton
-                size="large"
-                color="inherit"
-                // aria-label="Delete"
-                
-                // onClick={deleteMainEventImage}
-            >
-                <SettingsIcon />
-            </IconButton>
+            
+              <IconButton
+                  size="large"
+                  color="inherit"
+                  aria-label="Delete"
+                  onClick={deleteMainEventImage}
+              >
+                  <Delete />
+              </IconButton>
+              <Typography
+                  variant="h6"
+                  noWrap
+                  component="div"
+                  sx={{ flexGrow: 1 }}
+              >
+                  Tury {location.state.family.name}
+              </Typography>
+              <IconButton
+                  size="large"
+                  color="inherit"
+                  aria-label="Settings"
+                  onClick={navigateToSettings}
+              >
+                  <SettingsIcon />
+              </IconButton>
             </Toolbar>
         </AppBar>
 
-
-        {/* <SettingsButtonComponent onTrashClick={deleteCurrentPage} /> */}
         <div className="turn-content">
           <TurnNameEditor familyId={familyId} turnId={turnId} />
           <div className='image-viewer-view'>        
@@ -359,7 +369,7 @@ export default function TurnComponent() {
                 }
               </div>
           </div>
-          <DescriptionEditor turnId={turnId} />
+          <DescriptionEditor familyId={familyId} turnId={turnId} />
         </div>
 
       </Box>

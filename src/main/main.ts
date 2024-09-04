@@ -214,13 +214,13 @@ ipcMain.on('add-turn', async (event, args) => {
 ipcMain.on('turn-description-changed', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
-    const familyId = args[1]
-    const turnId = args[2];
+    const familyId = args[0]
+    const turnId = args[1];
     const contentPath = createPathToTurn(rootPath, familyId, turnId);
     createPathIfNotExists(contentPath);
-    const value = args[3];
+    const value = args[2];
 
-    console.log('turn-description-changed', contentPath, value)    
+    // console.log('turn-description-changed, familyId:', familyId, "turnId:", turnId, "contentPath:", contentPath, "value:", value)    
     fs.writeFileSync(`${contentPath}/description.txt`, value);
   }
 });

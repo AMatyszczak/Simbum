@@ -1,7 +1,7 @@
-import { Link, Navigate } from 'react-router-dom';
+import { Link, Navigate, useNavigate } from 'react-router-dom';
 import arrow_left from '../../../assets/buttons/arrow_left.svg';
 import './SettingsComponent.css';
-import React from 'react';
+import { useEffect, useState } from 'react';
 
 interface SettingsComponentState {
   pathToUserFiles: string;
@@ -13,62 +13,56 @@ interface SettingsComponentProps {
 }
 
 
-class SettingsComponent extends React.Component<SettingsComponentProps, SettingsComponentState> {
-  constructor(props: SettingsComponentProps) {
-    super(props);
-    
-    this.state = {
-      pathToUserFiles: window.electron.store.get('dataPath'),
-      newPathSet: false,
-    };
-  }
+export default function SettingsComponent(props: SettingsComponentProps) {
+  
+  const navigate = useNavigate()
+  const [pathToUserFiles, setPathToUserFiles] = useState("")
+  const [newPathSet, setNewPath] = useState(false)
 
-
-  selectPath = () => {
+  useEffect(() => {
+      setPathToUserFiles(window.electron.store.get('dataPath'))
+  }, [])
+  
+  function selectPath() {
     window.electron.ipcRenderer.once('settings-select-path', (arg: any) => {
       console.log("selectPath once event:", arg)
-      this.setState({ pathToUserFiles: arg, newPathSet: true});
+      setPathToUserFiles(arg)
+      setNewPath(true)
     });
     window.electron.ipcRenderer.sendMessage('settings-select-path', []);
   }
 
-  isPathToDataSet() {
-    console.log("iisPathToDataSet:", this.props)
-    return this.props.isPathToUserFilesSet || this.state.pathToUserFiles
+  function isPathToDataSet() {
+    console.log("props:", props, "props.isPathToUserFilesSet", props.isPathToUserFilesSet, "pathToUserFiles:", pathToUserFiles)
+    return props.isPathToUserFilesSet || pathToUserFiles
   }
 
-  render() {
-      if(this.state.newPathSet) { return <Navigate to="/familyGallery"/> }
-        else {
-          return (
-            <>
+  const handleReturnToPreviousPage = () => navigate(-1)
+
+  if(newPathSet) { return <Navigate to="/familyGallery"/> }
+  else return(
+          <>
             <button type="button" className="return-button">
               {
-                this.isPathToDataSet() ?
-                  <Link to="/familyGallery">
-                    <img src={arrow_left} alt="" />
-                  </Link>:
-                    <img src={arrow_left} className="return-button-icon-gray disabled" alt="" />
+                isPathToDataSet() ?
+                    <img src={arrow_left} alt="" onClick={handleReturnToPreviousPage}/>
+                    : <img src={arrow_left} className="return-button-icon-gray disabled" alt="" />
               }
             </button>
             <div className="settings-content">
             Wybierz miejsce, gdzie będą zapisywane twoje dane
               <button
                 type="button"
-                onClick={this.selectPath}
+                onClick={selectPath}
                 className="select-data-source-path-button"
                 >
                 Wybierz folder
               </button>
             </div>
             {
-              this.state.pathToUserFiles ? <span>Obecnie jest to: {this.state.pathToUserFiles}</span> : ""
+              pathToUserFiles ? <span>Obecnie jest to: {pathToUserFiles}</span> : ""
             }
             
           </>
           );
         }
-  }
-}
-
-export default SettingsComponent;

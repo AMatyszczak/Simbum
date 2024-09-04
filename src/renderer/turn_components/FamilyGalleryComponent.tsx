@@ -1,9 +1,11 @@
 import { styled } from '@mui/material/styles';
+
 import Grid from '@mui/material/Grid';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
 import { useEffect, useState } from 'react';
+import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Badge, Box, Card, Divider, Fab, IconButton, Modal, Stack, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -113,6 +115,9 @@ export default function FamilyGalleryComponent() {
         window.electron.ipcRenderer.sendMessage('add-family', [newFamilyImagePath, newFamilyName, 0])
     }
 
+    function navigateToSettings() {
+        navigate("/settings")
+    }
 
     return (
         <>
@@ -170,12 +175,19 @@ export default function FamilyGalleryComponent() {
                     variant="h6"
                     noWrap
                     component="div"
-                    sx={{ display: { xs: 'none', sm: 'block' } }}
+                    sx={{ display: { xs: 'none', sm: 'block' }, flexGrow: 1}}
                     align="center"
                 >
                  Rodziny   
                 </Typography>
-                <Box sx={{ flexGrow: 1 }} />
+                    <IconButton
+                        size="large"
+                        color="inherit"
+                        aria-label="Settings"
+                        onClick={navigateToSettings}
+                    >
+                        <SettingsIcon />
+                    </IconButton>
                 </Toolbar>
             </AppBar>
             </Box>
