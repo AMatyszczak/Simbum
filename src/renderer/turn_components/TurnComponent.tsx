@@ -77,16 +77,30 @@ export default function TurnComponent() {
     window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turnId]);  
   }
 
+  function isLastTurnDisplayed(): boolean {
+    // console.log("isLastTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex >= allturnsIds.length)
+    return turnIndex >= allturnsIds.length - 1
+  }
+
+  function isFirstTurnDisplayed(): boolean {
+    // console.log("isFirstTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex<= 0)
+    return turnIndex <= 0
+  }
+
   function onNextTurnClick() {
-    const nextIndex: number = turnIndex + 1 
-    setTurnIndex(nextIndex)
-    loadTurnById(familyId, allturnsIds[nextIndex], 0);
+    if(!isLastTurnDisplayed()) {
+      const nextIndex: number = turnIndex + 1
+      setTurnIndex(nextIndex)
+      loadTurnById(familyId, allturnsIds[nextIndex], 0);
+    }
   }
 
   function onPrevTurnClick() {
-    const nextIndex: number = turnIndex - 1
-    setTurnIndex(nextIndex)
-    loadTurnById(familyId, allturnsIds[nextIndex], 0);
+    if(!isFirstTurnDisplayed()) {
+      const nextIndex: number = turnIndex - 1
+      setTurnIndex(nextIndex)
+      loadTurnById(familyId, allturnsIds[nextIndex], 0);
+    }
   }
 
   function deleteMainEventImage(): any {
@@ -95,7 +109,6 @@ export default function TurnComponent() {
       console.log("deleteCurrentPage familyId:", familyId, "turnId:", turnId, "pageId:", turnEventImageId)
       window.electron.ipcRenderer.sendMessage('page-image-deleted', [familyId, turnId, turnEventImageId]);
       
-      // const eventImageIndexToShow = showe
       loadTurnImages(familyId, turnId, 0) // what if I remove last image?
     }
   }
