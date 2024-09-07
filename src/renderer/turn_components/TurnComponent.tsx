@@ -13,7 +13,7 @@ import 'react-quill/dist/quill.snow.css';
 import React, { useEffect, useState } from 'react';
 import { Link, Location, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowBack, Add, Delete } from '@mui/icons-material';
-import { AppBar, Toolbar, IconButton, Typography, Box, Button } from '@mui/material';
+import { AppBar, Toolbar, IconButton, Typography, Box, Button, Container, CssBaseline } from '@mui/material';
 
 
 type LocationState = {
@@ -25,7 +25,7 @@ type LocationState = {
     allTurnsIds: string[],
     turn: {
       turnId: string;
-      title: string;
+      turnName: string;
       description: string;
       imagePath: string;
     };
@@ -59,6 +59,7 @@ export default function TurnComponent() {
 
 
   useEffect(() => {
+    console.log("location:", location)
     const turnIndex: number = allturnsIds.findIndex((id: string) => id == turnId)
     setTurnIndex(turnIndex)
     loadTurnById(familyId, turnId, 0)
@@ -279,6 +280,7 @@ export default function TurnComponent() {
   else
     return (
       <Box sx={{ flexGrow: 1 }}>
+        <CssBaseline/>
         <AppBar position="static" color='primary'>
             <Toolbar variant='dense'>
               <IconButton
@@ -304,9 +306,10 @@ export default function TurnComponent() {
                   variant="h6"
                   noWrap
                   component="div"
-                  sx={{ flexGrow: 1 }}
+                  align='center'
+                  sx={{ flexGrow: 1}}
               >
-                  Tury {location.state.family.name}
+                  {location.state.family.name} | {location.state.turn.turnName}
               </Typography>
               <IconButton
                   size="large"
@@ -319,71 +322,68 @@ export default function TurnComponent() {
             </Toolbar>
         </AppBar>
 
-        <div className="turn-content">
-          <TurnNameEditor familyId={familyId} turnId={turnId} />
-          <div className='image-viewer-view'>        
-            <div className="turn-images-controller">
-              <button
-                className="next-turn-image-button"
-                type="button"
-              >
-                <img
-                  src={button_left}
-                  className="button-image"
-                  alt=""
-                  onClick={onNextTurnClick}
-                  draggable="false"
-                />
-              </button>
-              <div
-                className="turn-image-container"
-                onDrop={(e) => handleDropOnMainImage(e)}
-                onDragOver={(e) => handleDragOver(e)}
-              >
-                <img
-                  draggable="false"
-                  className="turn-image"
-                  src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
-                  alt=""
-                />
-              </div>
-              <button
-                className="prev-turn-image-button"
-                type="button"
-              >
-                <img
-                  src={button_right}
-                  className="button-image"
-                  alt=""
-                  onClick={onPrevTurnClick}
-                  draggable="false"
-                />
-
-              </button>
-            </div>
-            <div className='turn-image-thumbnail-list' 
-              onDragEnter={(e) => handleDragEnter(e)} 
-              onDragLeave={(e) => handleLeave(e)} 
+        <Container sx={{paddingTop: 1}}>
+          <Box display="flex" sx={{background: "transparent"}}>
+            <button
+              className="next-turn-image-button"
+              type="button"
+            >
+              <img
+                src={button_left}
+                className="button-image"
+                alt=""
+                onClick={onNextTurnClick}
+                draggable="false"
+              />
+            </button>
+            <div
+              className="turn-image-container"
+              onDrop={(e) => handleDropOnMainImage(e)}
               onDragOver={(e) => handleDragOver(e)}
-              onDrop={(e) => handleDropOnThumbnails(e)} 
-              >
-                {
-                  showedThumbnails.map((thumbnail) => (
-                    <div className='turn-image-thumbnail-container'>
-                      <img 
-                        draggable="false"
-                        src={`${thumbnail.path}?${imageHash}`}
-                        key={thumbnail.id} 
-                        className={isDragging ? "turn-image-thumbnail thumbnail-drag-overlay" : "turn-image-thumbnail"} 
-                        onClick={(e) => displayTurnEventImage(thumbnail.id)}
-                      />
-                    </div>
-                  ))
-                }
-              </div>
-          </div>
+            >
+              <img
+                draggable="false"
+                className="turn-image"
+                src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
+                alt=""
+              />
+            </div>
+            <button
+              className="prev-turn-image-button"
+              type="button"
+            >
+              <img
+                src={button_right}
+                className="button-image"
+                alt=""
+                onClick={onPrevTurnClick}
+                draggable="false"
+              />
+
+            </button>
+          </Box>
+          <div className='turn-image-thumbnail-list' 
+            onDragEnter={(e) => handleDragEnter(e)} 
+            onDragLeave={(e) => handleLeave(e)} 
+            onDragOver={(e) => handleDragOver(e)}
+            onDrop={(e) => handleDropOnThumbnails(e)} 
+            >
+              {
+                showedThumbnails.map((thumbnail) => (
+                  <div className='turn-image-thumbnail-container'>
+                    <img 
+                      draggable="false"
+                      src={`${thumbnail.path}?${imageHash}`}
+                      key={thumbnail.id} 
+                      className={isDragging ? "turn-image-thumbnail thumbnail-drag-overlay" : "turn-image-thumbnail"} 
+                      onClick={(e) => displayTurnEventImage(thumbnail.id)}
+                    />
+                  </div>
+                ))
+              }
+            </div>
           <DescriptionEditor familyId={familyId} turnId={turnId} />
-        </div>
+        </Container>
 
       </Box>
     );

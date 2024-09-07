@@ -134,6 +134,30 @@ ipcMain.on('page-image-deleted', async (event, args) => {
   }
 });
 
+
+ipcMain.on('delete-family', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const familyId = args[0];
+    
+    const familyPath = createPathToFamily(rootPath, familyId)
+    const pathToFamiliesMap = path.join(rootPath, "families_map.json")
+    const familiesMapFile = fs.readFileSync(pathToFamiliesMap)
+    const familiesMap = JSON.parse(familiesMapFile.toString())
+    const index = familiesMap["families"].findIndex((familyJson: { id: string; filename: string }) => familyJson.id === familyId, 0)
+
+    console.log("page-i,ma")
+
+    if (index > -1) {
+      familiesMap["families"].splice(index, 1);
+      fs.writeFileSync(pathToFamiliesMap, JSON.stringify(familiesMap))
+      fs.rmSync(familyPath, { recursive: true, force: true})
+    }
+  }
+  event.reply('delete-family', true)
+});
+
+
 ipcMain.on('add-turn-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
@@ -623,8 +647,8 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    minHeight: 600,
-    minWidth: 800,
+    // minHeight: 600,
+    // minWidth: 800,
     maxHeight: 1440,
     maxWidth: 2560,
     icon: getAssetPath('icon.png'),

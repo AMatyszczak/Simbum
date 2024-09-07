@@ -21,7 +21,7 @@ export type Channels =
   | 'get-family'
   | 'get-family-gallery-data'
   | 'add-family'
-  | 'remove-family'
+  | 'delete-family'
   | 'edit-family';
 
 contextBridge.exposeInMainWorld('electron', {

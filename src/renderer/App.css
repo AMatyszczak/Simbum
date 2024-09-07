@@ -8,35 +8,17 @@
   src: url('/assets/fonts/Loucos Lyne - thesimssansboldsc.otf');
 }
 
-/* .root { */
-  /* width: 100vw; */
-  /* height: 100vh; */
-/* } */
-
 body {
   height: 100vh;
   overflow: hidden;
 
+  /* overflow-x: hidden;
+  overflow-y: hidden; */
   background: linear-gradient(#ebeffc, #c1d3e9 25%);
   margin: 0;
 }
 
-.turn-container {
-  height: 100%;
-  justify-content: center;
-  align-items: center;
-}
-
-.turn-content {
-  display: flex;
-  flex-flow: column wrap;
-  justify-content: center;
-  align-items: stretch;
-
-  margin-top: 1rem;
-}
-
-.turn-title-content {
+/* .turn-title-content {
   max-height: calc(6vh);
   font-family: Simsowo2;
 
@@ -48,52 +30,8 @@ body {
   border: none;
   background: unset;
   outline: unset;
-  padding: 0;
-}
+} */
 
-.turn-content .turn-images-controller {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: center;
-  align-items: center;
-  position: relative;
-  margin-top: 1rem;
-}
-
-.image-viewer-view {
-  display: flex;
-  flex-flow: column nowrap;
-  justify-content: center;
-  align-items: center;
-}
-
-.turn-content .turn-images-controller button.next-turn-image-button {
-  background: transparent;
-  border: unset;
-}
-
-.turn-content .turn-images-controller button.prev-turn-image-button {
-  background: transparent;
-  border: unset;
-}
-
-.turn-content
-  .turn-images-controller
-  button.next-turn-image-button:disabled {
-  border: #1452ae;
-}
-
-.turn-content
-  .turn-images-controller
-  button.prev-turn-image-button:disabled {
-  border: #1452ae;
-}
-
-.turn-image-container {
-  display: flex;
-  max-width: calc(80vw);
-  flex-direction: column;
-}
 
 .turn-image-thumbnail-list {
   display: flex;
@@ -110,8 +48,6 @@ body {
   position: block;
   margin: 0 10px 0 0;
   z-index: -1;
-  /* position: relative; */
-  /* margin-right: 8px; */
   width: 120px;
 }
 
@@ -123,15 +59,12 @@ body {
   object-fit: contain;
   width: 100%;
   height: 100%;
-  max-height: calc(69vh - 1rem - 1rem);
 }
 
-.button-image {
-  min-width: 1rem;
-  min-height: 1rem;
+/* .button-image {
   max-width: calc(10vw);
-  max-height: min(50%, 8rem);
-}
+  max-height: calc(10vw);
+} */
 
 .thumbnail-drag-overlay {
   position: relative;
@@ -150,15 +83,11 @@ body {
   align-self: center;
 
   background-color: #f0f7fb;
-
-  min-height: calc(25vh - 4rem);
-  max-height: calc(25vh - 4rem);
-  min-width: 80vw;
-  max-width: 80vw;
-
-  margin-top: 1rem;
-  margin-bottom: 1rem;
-  padding: 1rem 1rem 1rem 1rem;
+/* 
+  min-height: calc(20vh - 4rem);
+  max-height: calc(20vh - 4rem); */
+  /* min-width: 80vw;
+  max-width: 80vw; */
 }
 
 .turn-image-description-scrollbar {
@@ -171,7 +100,7 @@ body {
   justify-content: center;
 }
 
-.turn-image-description-content .ql-container {
+/* .turn-image-description-content .ql-container {
   height: 100%;
   min-height: 100%;
 }
@@ -179,7 +108,7 @@ body {
 .turn-image-description-content {
   height: 100%;
   width: 100%;
-}
+} */
 
 .turn-image-description-content .ql-editor {
   font-family: Simsowo;
@@ -201,14 +130,10 @@ body {
   padding-top: 0px;
 }
 
-.ql-snow {
-  border: none !important;
-}
-
-.button {
+/* .button {
   background: transparent;
   border: unset;
-}
+} */
 
 /* .turn-toolbar {
   display: flex;

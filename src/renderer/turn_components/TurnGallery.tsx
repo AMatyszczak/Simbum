@@ -116,8 +116,8 @@ export default function TurnGallery() {
     function onTurnClick(e: any, turnGalleryData: any) {
         // console.log("turnGalleryData", turnGalleryData)
         const allTurnsIds = galleryData.map((data: any) => data.turnId)
-        console.log("allTurnsIds", allTurnsIds)
-        navigate("/turn", {state:{allTurnsIds: allTurnsIds, turn: turnGalleryData, family:{id: location.state.family.id}}} ) 
+        console.log("allTurnsIds", allTurnsIds, "location:", location, "turn:", turnGalleryData)
+        navigate("/turn", {state:{allTurnsIds: allTurnsIds, turn: turnGalleryData, family:{id: location.state.family.id, name: location.state.family.name}}} ) 
     }
 
     function navigateToSettings() {
