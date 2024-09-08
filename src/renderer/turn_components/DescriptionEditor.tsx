@@ -1,3 +1,4 @@
+import { Box } from '@mui/material';
 import { useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 
@@ -12,7 +13,7 @@ export default function DescriptionEditor(props: any) {
     console.log("DescriptionEditor", props )
     setTurnId(props.turnId)
     loadData()
-  }, [props])
+  }, [props.turnId])
 
 
   function onTextChanged(text: any) {
@@ -43,17 +44,15 @@ export default function DescriptionEditor(props: any) {
 
   
   return (
-    <div className="turn-image-description-container">
-      <div className="turn-image-description-scrollbar">
-        <ReactQuill
-          theme="snow"
-          value={text}
-          onChange={(v) => onTextChanged(v)}
-          modules={modules}
-          className="turn-image-description-content"
-        />
-      </div>
-    </div>
+    <Box sx={{backgroundColor: "white", overflowY: 'auto', padding: 5}}>
+      <ReactQuill
+        theme="snow"
+        value={text}
+        onChange={(v) => onTextChanged(v)}
+        modules={modules}
+        className="turn-image-description-content"
+      />
+    </Box>
   );
   
 }

@@ -10,10 +10,12 @@ import button_left_plus from '../../../assets/buttons/button_left_plus.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import SettingsIcon from '@mui/icons-material/Settings';
 import 'react-quill/dist/quill.snow.css';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, Location, useLocation, useNavigate } from 'react-router-dom';
 import { ArrowBack, Add, Delete } from '@mui/icons-material';
-import { AppBar, Toolbar, IconButton, Typography, Box, Button, Container, CssBaseline } from '@mui/material';
+import Grid from '@mui/material/Grid2';
+import { AppBar, Toolbar, IconButton, Typography, Box, Button, Container, CssBaseline, ButtonBase, styled, ImageList, ImageListItem, Stack } from '@mui/material';
+import { relative } from 'path';
 
 
 type LocationState = {
@@ -34,6 +36,7 @@ type LocationState = {
 
 export default function TurnComponent() {
   
+  
   const navigate = useNavigate();
   const location = useLocation() as LocationState;
   const familyId: string = location.state.family.id;
@@ -44,7 +47,8 @@ export default function TurnComponent() {
   const [turnImages, setTurnEventsImages] = useState<{id: string, filename: string, path: string}[]>([])
   const [turnEventImageId, setTurnEventImageId] = useState<string>("")
   const [turnEventMainImagePath, setTurnEventMainImagePath] = useState('')
-
+  const [turnEventMainImageDimensions, setTurnEventMainImageDimensions] = useState<{width: number, height: number}>({width: 100, height: 100})
+  
   const [pagesLoaded, setPagesLoaded] = useState<boolean>(false)
   const [imageHash, setImageHash] = useState(Date.now())
   
@@ -54,18 +58,37 @@ export default function TurnComponent() {
   const [draggedElement, setDraggedElement] = useState<{path: string, filename: string, id: string}>({path: '', filename: '', id: ''})
   const [isDragging, setIsDrawing] = useState(false)
   const [indexOfDraggedElement, setIndexOfDraggedElement] = useState(-1)
- 
+  
   const handleReturnToPreviousPage = () => navigate(-1)
-
-
+  
+  const observedMainImage = useRef(null)
+  
   useEffect(() => {
+    if(!observedMainImage.current) {
+      return;
+    }
+    const resizeObserver = new ResizeObserver(() => {
+        if(observedMainImage.current != null) {
+          const height = observedMainImage.current.clientHeight
+          if(height !== turnEventMainImageDimensions.height) {
+            console.log("observedMainImage.current", height, "turnEventMainImageDimensions.height:", turnEventMainImageDimensions.height)
+            setTurnEventMainImageDimensions({width: 100, height: height});
+          }
+        }
+      });
+    resizeObserver.observe(observedMainImage.current)
+
     console.log("location:", location)
     const turnIndex: number = allturnsIds.findIndex((id: string) => id == turnId)
     setTurnIndex(turnIndex)
     loadTurnById(familyId, turnId, 0)
-  }, [])
 
-
+    return function cleanup() {
+      resizeObserver.disconnect();
+    }
+  }, [observedMainImage.current])
+  
+  
   function loadTurnById(familyId: string, turnId: string, indexOfImageToDisplay: number) {
     console.log("TurnComponent, loadTurnById", turnId)
     setTurnId(turnId)
@@ -172,11 +195,10 @@ export default function TurnComponent() {
 
   function handleDragOver(e: any) {
     e.preventDefault();
-
     if (isDragging) {
-      let parentElement: any = e.target.className == 'turn-image-thumbnail-list' ? e.target : e.target.parentElement
+      let element: any = e.target.id == 'thumbnails-stack' ? e.target : e.target.parentElement
 
-      const postionOfImageOnThumbnails = determinePositionOfImage(parentElement, e.clientX, false)
+      const postionOfImageOnThumbnails = determinePositionOfImage(element, e.clientY, false)
 
       if (indexOfDraggedElement !== postionOfImageOnThumbnails) {
         const thumbs = [...savedThumbnails]
@@ -192,7 +214,9 @@ export default function TurnComponent() {
   function handleLeave(e: any) {
     e.preventDefault();
 
-    if(isDragging && e.relatedTarget.className != "turn-image-thumbnail-container" && e.relatedTarget.className != "turn-image-thumbnail-list") {
+    console.log("handleDragLeave, e.target", e.target.id, "e.target.parent:", e.target.parentElement.id)
+    
+    if(isDragging && e.relatedTarget.id != "thumbnails-stack") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails])
       setIndexOfDraggedElement(-1)
@@ -204,8 +228,11 @@ export default function TurnComponent() {
   function handleDragEnter(e: any) {
     e.preventDefault();
 
-    if (e.target.parentElement.className == "turn-image-thumbnail-list" && !isDragging) {
-      const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientX, false)
+    console.log("handleDragEnter, e.target", e.target.id, "e.target.parent:", e.target.parentElement.id)
+
+    if (e.target.parentElement.id == "thumbnails-stack" && !isDragging) {
+      const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientY, false)
+      console.log("postionOfImageOnThumbnails:", postionOfImageOnThumbnails)
       
       let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
       let ele = {
@@ -224,17 +251,17 @@ export default function TurnComponent() {
     }
   }
 
-  function determinePositionOfImage(parentElement: any, clientX: any, addImageWith: boolean) {
-    let imageWidth = 120 + 8;
-    let parentElementBoundRect = parentElement.getBoundingClientRect()
-
-    const scrollLeft = parentElement.scrollLeft;
-    let relativeX = clientX - parentElementBoundRect.left + scrollLeft;    
-    if (addImageWith) {
-      relativeX += imageWidth;
+  function determinePositionOfImage(element: any, clientY: any, addImageHeight: boolean) {
+    let imageHeight = 120 + 8;
+    let parentElementBoundRect = element.getBoundingClientRect()
+    // console.log("parentElementBoundRect:", parentElementBoundRect)
+    const scrollBottom = element.scrollBottom;
+    let relativeY = clientY - parentElementBoundRect.bottom + scrollBottom; 
+    if (addImageHeight) {
+      relativeY += imageHeight;
     }
-    
-    let postionOfImage = Math.floor(relativeX/imageWidth)
+    let postionOfImage = Math.floor(relativeY/imageHeight)
+    console.log("relativeX:", relativeY, "imageHeight:", imageHeight, "positionOfImage:", postionOfImage)
     if (postionOfImage < 0 ) {
       postionOfImage = 0
     }
@@ -276,10 +303,13 @@ export default function TurnComponent() {
     navigate("/settings")
   }
 
-  if (!pagesLoaded) {return <div className='loader'/>}
-  else
+  function onMainImageLoaded(e: any) {
+    console.log("onMainImageLoaded,e:", e," height:", e.target.clientHeight, "width:", e.target.clientWidth)
+    setTurnEventMainImageDimensions({width: e.target.clientWidth, height: e.target.clientHeight})
+  }
+
     return (
-      <Box sx={{ flexGrow: 1 }}>
+      <Box >
         <CssBaseline/>
         <AppBar position="static" color='primary'>
             <Toolbar variant='dense'>
@@ -322,47 +352,57 @@ export default function TurnComponent() {
             </Toolbar>
         </AppBar>
 
-        <Container sx={{paddingTop: 1}}>
-          <Box display="flex" sx={{background: "transparent"}}>
-            <button
-              className="next-turn-image-button"
-              type="button"
-            >
-              <img
-                src={button_left}
-                className="button-image"
-                alt=""
-                onClick={onNextTurnClick}
-                draggable="false"
-              />
-            </button>
-            <div
-              className="turn-image-container"
-              onDrop={(e) => handleDropOnMainImage(e)}
-              onDragOver={(e) => handleDragOver(e)}
-            >
-              <img
-                draggable="false"
-                className="turn-image"
-                src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
-                alt=""
-              />
-            </div>
-            <button
-              className="prev-turn-image-button"
-              type="button"
-            >
-              <img
-                src={button_right}
-                className="button-image"
-                alt=""
-                onClick={onPrevTurnClick}
-                draggable="false"
-              />
-
-            </button>
-          </Box>
-          <div className='turn-image-thumbnail-list' 
+        <Stack id="container" sx={{display: "flex", direction: "column", paddingTop: 2}} >
+          <Grid component="section" sx={{ display: "flex", padding: 0, margin: 0}} id="maine row stack">
+            {/* Button left */}
+            <Box display="flex" sx={{alignItems: 'center'}}>
+              <ButtonBase sx={{display: 'flex', width: '100px'}}>
+                <img src={button_left} style={{width: '100%'}}/>  
+              </ButtonBase>
+            </Box>
+              <Box id="majne" sx={{height:'100%'}}                   
+                  onResize={onMainImageLoaded}
+                  onResizeCapture={onMainImageLoaded} >
+                <img
+                  ref={observedMainImage}
+                  id="main-image"
+                  style={{maxWidth: '100%', maxHeight: '100%', objectFit: 'contain'}}
+                  className='turn-image'
+                  draggable="false"
+                  src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
+                  alt=""
+                  onLoad={onMainImageLoaded}
+                  onResize={onMainImageLoaded}
+                  onResizeCapture={onMainImageLoaded}
+                  />
+              </Box>
+              <Stack direction="column"
+                  display={"flex"}
+                  id="thumbnails-stack" 
+                  spacing={{xs: 1}}
+                  onDragEnter={(e) => handleDragEnter(e)} 
+                  onDragLeave={(e) => handleLeave(e)} 
+                  onDragOver={(e) => handleDragOver(e)}
+                  onDrop={(e) => handleDropOnThumbnails(e)}
+                  maxHeight={turnEventMainImageDimensions.height}
+                  sx={{ padding: 0.5, overflowY: 'scroll', maxWidth: '10%'}}>
+                {showedThumbnails.map((thumbnail) => (
+                  <img
+                    id="single-thumbnail"
+                    // srcSet={`${thumbnail.path}`}
+                    src={`${thumbnail.path}?${imageHash}`}
+                    alt="thumbnail"
+                    loading="lazy"
+                  />
+                ))}
+              </Stack>
+            <Box display="flex" sx={{alignItems: 'center'}}>
+              <ButtonBase sx={{display: 'flex', width: '100px'}}>
+                <img src={button_right} style={{width: '100%'}}/>  
+              </ButtonBase>
+            </Box>
+          </Grid>
+          {/* <div className='turn-image-thumbnail-list' 
             onDragEnter={(e) => handleDragEnter(e)} 
             onDragLeave={(e) => handleLeave(e)} 
             onDragOver={(e) => handleDragOver(e)}
@@ -381,9 +421,11 @@ export default function TurnComponent() {
                   </div>
                 ))
               }
-            </div>
-          <DescriptionEditor familyId={familyId} turnId={turnId} />
-        </Container>
+            </div> */}
+            {/* <Box  sx={{minWidth: '20vh',backgroundColor: "white"}}> */}
+            <DescriptionEditor familyId={familyId} turnId={turnId} />
+            {/* </Box> */}
+        </Stack>
 
       </Box>
     );

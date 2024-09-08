@@ -10,10 +10,10 @@
 
 body {
   height: 100vh;
-  overflow: hidden;
+  /* overflow: hidden; */
 
-  /* overflow-x: hidden;
-  overflow-y: hidden; */
+  overflow-x: hidden;
+  overflow-y: hidden;
   background: linear-gradient(#ebeffc, #c1d3e9 25%);
   margin: 0;
 }
@@ -61,11 +61,6 @@ body {
   height: 100%;
 }
 
-/* .button-image {
-  max-width: calc(10vw);
-  max-height: calc(10vw);
-} */
-
 .thumbnail-drag-overlay {
   position: relative;
   margin-right: 8px;
@@ -99,16 +94,6 @@ body {
   align-items: center;
   justify-content: center;
 }
-
-/* .turn-image-description-content .ql-container {
-  height: 100%;
-  min-height: 100%;
-}
-
-.turn-image-description-content {
-  height: 100%;
-  width: 100%;
-} */
 
 .turn-image-description-content .ql-editor {
   font-family: Simsowo;
