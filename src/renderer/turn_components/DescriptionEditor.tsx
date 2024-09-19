@@ -44,7 +44,7 @@ export default function DescriptionEditor(props: any) {
 
   
   return (
-    <Box sx={{backgroundColor: "white", overflowY: 'auto', padding: 5}}>
+    <Box sx={{ backgroundColor: "white", overflowY: 'auto', margin: 1, padding: 1, border: 'unset'}} >
       <ReactQuill
         theme="snow"
         value={text}

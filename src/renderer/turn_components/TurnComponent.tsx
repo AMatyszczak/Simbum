@@ -309,7 +309,7 @@ export default function TurnComponent() {
   }
 
     return (
-      <Box >
+      <Box id="lol" flex={1} flexGrow={1} minHeight={'100vh'} sx={{height: '100dvh', display: 'flex', flexDirection: 'column'}}>
         <CssBaseline/>
         <AppBar position="static" color='primary'>
             <Toolbar variant='dense'>
@@ -352,22 +352,22 @@ export default function TurnComponent() {
             </Toolbar>
         </AppBar>
 
-        <Stack id="container" sx={{display: "flex", direction: "column", paddingTop: 2}} >
-          <Grid component="section" sx={{ display: "flex", padding: 0, margin: 0}} id="maine row stack">
+        <Box id="container" flexGrow={1} sx={{minHeight: '100%', height:'100%', display: 'flex', flexDirection: 'column', paddingTop: 2}} >
+          <Grid component="section" justifyContent={"center"} sx={{display: "flex", padding: 0, margin: 0}} id="maine row stack">
             {/* Button left */}
             <Box display="flex" sx={{alignItems: 'center'}}>
               <ButtonBase sx={{display: 'flex', width: '100px'}}>
                 <img src={button_left} style={{width: '100%'}}/>  
               </ButtonBase>
             </Box>
-              <Box id="majne" sx={{height:'100%'}}                   
+              <Box id="majne" sx={{display: 'flex', height:'100%'}}                   
                   onResize={onMainImageLoaded}
                   onResizeCapture={onMainImageLoaded} >
                 <img
                   ref={observedMainImage}
                   id="main-image"
-                  style={{maxWidth: '100%', maxHeight: '100%', objectFit: 'contain'}}
-                  className='turn-image'
+                  style={{maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain'}}
+                  // className='turn-image'
                   draggable="false"
                   src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
                   alt=""
@@ -422,10 +422,10 @@ export default function TurnComponent() {
                 ))
               }
             </div> */}
-            {/* <Box  sx={{minWidth: '20vh',backgroundColor: "white"}}> */}
-            <DescriptionEditor familyId={familyId} turnId={turnId} />
-            {/* </Box> */}
-        </Stack>
+            <Box flexGrow={1} display='flex' sx={{margin:1, backgroundColor: "white"}}>
+              <DescriptionEditor familyId={familyId} turnId={turnId} />
+            </Box>
+        </Box>
 
       </Box>
     );
