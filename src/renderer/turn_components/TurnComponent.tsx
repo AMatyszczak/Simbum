@@ -352,7 +352,7 @@ export default function TurnComponent() {
             </Toolbar>
         </AppBar>
 
-        <Box id="container" flexGrow={1} sx={{minHeight: '100%', height:'100%', display: 'flex', flexDirection: 'column', paddingTop: 2}} >
+        <Box id="container" flexGrow={1} sx={{minHeight: '100%', height:'100%', display: 'flex', flexDirection: 'column', paddingTop: 1}} >
           <Grid component="section" justifyContent={"center"} sx={{display: "flex", padding: 0, margin: 0}} id="maine row stack">
             {/* Button left */}
             <Box display="flex" sx={{alignItems: 'center'}}>
@@ -366,7 +366,7 @@ export default function TurnComponent() {
                 <img
                   ref={observedMainImage}
                   id="main-image"
-                  style={{maxWidth: '100%', maxHeight: '60vh', objectFit: 'contain'}}
+                  style={{maxWidth: '100%', maxHeight: '70vh', objectFit: 'contain'}}
                   // className='turn-image'
                   draggable="false"
                   src={`${(turnEventMainImagePath || placeholder)}?${imageHash})`}
@@ -385,7 +385,7 @@ export default function TurnComponent() {
                   onDragOver={(e) => handleDragOver(e)}
                   onDrop={(e) => handleDropOnThumbnails(e)}
                   maxHeight={turnEventMainImageDimensions.height}
-                  sx={{ padding: 0.5, overflowY: 'scroll', maxWidth: '10%'}}>
+                  sx={{ padding: 0.5, overflowY: 'auto', maxWidth: '10%'}}>
                 {showedThumbnails.map((thumbnail) => (
                   <img
                     id="single-thumbnail"
@@ -422,8 +422,8 @@ export default function TurnComponent() {
                 ))
               }
             </div> */}
-            <Box flexGrow={1} display='flex' sx={{margin:1, backgroundColor: "white"}}>
-              <DescriptionEditor familyId={familyId} turnId={turnId} />
+            <Box height={0} flex={"1 1 auto"} display='flex' sx={{ margin:1, padding:1, backgroundColor: "white"}}>
+              <DescriptionEditor familyId={familyId} turnId={turnId} overflow="hidden"/>
             </Box>
         </Box>
 
