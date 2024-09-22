@@ -113,9 +113,7 @@ export default function FamilyGalleryComponent() {
     }
 
     function onFamilyClick(e:any, familyGalleryData: any){
-        console.log("onTurnClick", e, familyGalleryData)
         navigate("/turnGallery", {state:{family: familyGalleryData}} )    
-        console.log("after navigate")    
     }
 
     function onNewFamilyImageOver(e: any) {
@@ -289,7 +287,6 @@ export default function FamilyGalleryComponent() {
                                         <Edit />
                                     </IconButton>
                                     
-                                    
                                     <IconButton
                                         size="large"
                                         color="inherit"
@@ -305,58 +302,6 @@ export default function FamilyGalleryComponent() {
                     </ImageListItem>
                 ))}
             </ImageList>
-
-            {/* <Grid container sx={{ overflowY: "auto", maxHeight: 'calc(100vh - 48px)'}} 
-                spacing={1}
-                columns={3}
-                padding={1}>
-                {
-                galleryData.map((data: any, i: number) => (
-                    <Grid size="grow" sx={{ padding: 0, minWidth: 420, maxWidth: 520}}>
-                        <Card sx={{padding: 0}} key={i}>
-                        <CardContent sx={{ padding: 0}}>  
-                                <CardActionArea onClick={(e) => onFamilyClick(e, data)}>
-
-                                    <CardMedia
-                                        component="img"
-                                        image={"file://" + data["imagePath"]}
-
-                                        />
-
-                                </CardActionArea>
-                                <Grid container direction='row' sx={{paddingLeft: 0.5, paddingRight: 0.5}}>
-                                    <Typography
-                                        variant="h5"
-                                        component="div"
-                                        sx={{ display: { marginLeft: 4, flexGrow: 1} }}
-                                        >
-                                        {data['name']}
-                                    </Typography>
-
-                                    <IconButton
-                                        size="large"
-                                        edge="start"
-                                        color="inherit"
-                                        aria-label="go back"
-                                        sx={{padding: 0}}
-                                        >
-                                        <Edit />
-                                    </IconButton>
-                                    
-                                    
-                                    <IconButton
-                                        size="large"
-                                        color="inherit"
-                                        aria-label="Delete"
-                                        sx={{padding: 0}}   
-                                        >
-                                        <Delete />
-                                    </IconButton>
-                                </Grid>
-                        </CardContent>
-                    </Card></Grid>
-                ))}
-            </Grid> */}
         </Box>
     );
 }

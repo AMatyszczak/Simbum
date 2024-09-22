@@ -1,10 +1,18 @@
-import { Add, AddPhotoAlternate, ArrowBack} from "@mui/icons-material";
+import { Add, AddPhotoAlternate, ArrowBack, Delete, Edit} from "@mui/icons-material";
 import SettingsIcon from '@mui/icons-material/Settings';
-import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button } from "@mui/material";
+import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button, ImageList, ImageListItem, ImageListItemBar, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import React from "react";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { HistoryRouterProps, useLocation, useNavigate } from "react-router-dom";
 
+
+const ImgWithPointer = styled('img')({
+    "&:hover": {
+      cursor: "pointer",
+      opacity: 0.8,
+    },
+})
 
 const StyledModal = {
   position: 'absolute' as 'absolute',
@@ -64,6 +72,25 @@ export default function TurnGallery() {
     const handleCloseNewTurnModal = () => setNewTurnModalOpen(false)
     const handleReturnToPreviousPage = () => navigate(-1)
 
+    const [deleteTurnDialogOpen, setDeleteTurnDialogOpen] = React.useState<boolean>(false);
+    const [deleteTurnId, setDeleteTurnId] = React.useState<string>("")
+    const [deleteTurnName, setDeleteTurnName] = React.useState<string>("")
+    const [deleteTurnPrompt, setDeleteTurnPrompt] = React.useState<string>("")
+
+    const handleDeleteTurnDialogOpen = (turnId: string, turnName: string) => {
+        console.log("turnId:", turnId, "turnName:", turnName)
+        setDeleteTurnId(turnId)
+        setDeleteTurnName(turnName)
+        
+        setDeleteTurnDialogOpen(true);
+    };
+
+    const handleDeleteTurnDialogClose = () => {
+        setDeleteTurnId("")
+        setDeleteTurnName("")
+
+        setDeleteTurnDialogOpen(false);
+    };
 
     useEffect(() => {
         loadTurnGalleryData(location.state.family.id)
@@ -82,6 +109,20 @@ export default function TurnGallery() {
         window.electron.ipcRenderer.sendMessage('add-turn', [location.state.family.id, newTurnName, newTurnImagePath])
     }
 
+    function deleteTurn(e: any, turnId: string) {
+        window.electron.ipcRenderer.once('delete-turn', (arg: any) => {
+            console.log("delete-turn successful")
+            loadTurnGalleryData(location.state.family.id)
+        })
+        
+        console.log("deleteTurn, e:",e, "turnId:", turnId)
+        setDeleteTurnDialogOpen(false)
+        if(turnId != null && turnId.length > 0) {
+            window.electron.ipcRenderer.sendMessage('delete-turn', [location.state.family.id, turnId])
+        }
+        setDeleteTurnName("")
+        setDeleteTurnId("")
+    }
 
     function loadTurnGalleryData(familyId: string){
         window.electron.ipcRenderer.once('get-turn-gallery-data', (arg:any) => {
@@ -154,6 +195,27 @@ export default function TurnGallery() {
                     </Stack>
                 </Box>
             </Modal>
+
+            <Dialog
+                open={deleteTurnDialogOpen}
+                onClose={handleDeleteTurnDialogClose}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">
+                    Uwaga! Czy na pewno chcesz usunąć {deleteTurnName}? .
+                </DialogTitle>
+                <DialogContent>
+                    <TextField autoFocus id="standard-basic" label="Aby usunać wpisz 'Potwierdzam'" variant="standard" sx={{width: 1}} onChange={(e:any) => setDeleteTurnPrompt(e.target.value)}/>
+                </DialogContent>
+                <DialogActions>
+                <Button onClick={handleDeleteTurnDialogClose}>Nie</Button>
+                <Button onClick={(e:any) => deleteTurn(e, deleteTurnId)} autoFocus disabled={deleteTurnPrompt !== "Potwierdzam"}>
+                   Tak 
+                </Button>
+                </DialogActions>
+            </Dialog>
+
             <AppBar position="static" color='primary'>
                 <Toolbar variant='dense'>
                 
@@ -196,7 +258,49 @@ export default function TurnGallery() {
                     </IconButton>
                 </Toolbar>
             </AppBar>
-            <Grid container >
+            <ImageList sx={{ width: '100vw', maxHeight: 'calc(100vh - 42px)', margin: 0, padding: 1}} cols={6} >
+                {galleryData.map((turn: any) => (
+                    <ImageListItem key={turn["imagePath"]}>
+                        <ImgWithPointer
+                            srcSet={`file://${turn["imagePath"]}`}
+                            src={`file://${turn["imagePath"]}`}
+                            style={{ width: '100%'}}
+                            alt={turn['name']}
+                            loading="lazy"
+                            onClick={(e:any) => onTurnClick(e, turn)}
+                        />
+                        <ImageListItemBar
+                            title={turn['turnName']}
+                            sx={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%, rgba(0,0,0,0) 100%)', paddingRight: 1 }}
+                            actionIcon={
+                                <>
+                                    <IconButton
+                                        size="large"
+                                        edge="start"
+                                        color="inherit"
+                                        aria-label="go back"
+                                        sx={{padding: 0, color: 'white'}}
+                                        >
+                                        <Edit />
+                                    </IconButton>
+                                    
+                                    <IconButton
+                                        size="large"
+                                        color="inherit"
+                                        aria-label="Delete"
+                                        sx={{padding: 0, color: 'white'}}
+                                        onClick={(e: any) => handleDeleteTurnDialogOpen(turn['turnId'], turn['turnName'])}
+                                        >
+                                        <Delete />
+                                    </IconButton>
+                                </>
+                            }
+                        />
+                    </ImageListItem>
+                ))}
+            </ImageList>
+
+            {/* <Grid container >
                 {
                 galleryData.map((turn: any) => (
                     <Card sx={{margin: 2, maxWidth: 500, flexGrowi: 1}}
@@ -232,7 +336,7 @@ export default function TurnGallery() {
                         </Paper>
                     </Card>
                 ))}
-            </Grid>
+            </Grid> */}
         </Box>
     )
 }

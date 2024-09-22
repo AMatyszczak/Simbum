@@ -146,8 +146,6 @@ ipcMain.on('delete-family', async (event, args) => {
     const familiesMap = JSON.parse(familiesMapFile.toString())
     const index = familiesMap["families"].findIndex((familyJson: { id: string; filename: string }) => familyJson.id === familyId, 0)
 
-    console.log("page-i,ma")
-
     if (index > -1) {
       familiesMap["families"].splice(index, 1);
       fs.writeFileSync(pathToFamiliesMap, JSON.stringify(familiesMap))
@@ -157,6 +155,29 @@ ipcMain.on('delete-family', async (event, args) => {
   event.reply('delete-family', true)
 });
 
+
+ipcMain.on('delete-turn', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const familyId = args[0];
+    const turnId = args[1];
+    
+    const familyPath = createPathToFamily(rootPath, familyId)
+    const turnPath = createPathToTurn(rootPath, familyId, turnId)
+
+    const pathToTurnsMap = path.join(familyPath, "turns_map.json")
+    const turnsMapFile = fs.readFileSync(pathToTurnsMap)
+    const turnsMap = JSON.parse(turnsMapFile.toString())
+    const index = turnsMap["turns"].findIndex((turnJSON: { id: string; filename: string }) => turnJSON.id === turnId, 0)
+
+    if (index > -1) {
+      turnsMap["turns"].splice(index, 1);
+      fs.writeFileSync(pathToTurnsMap, JSON.stringify(turnsMap))
+      fs.rmSync(turnPath, { recursive: true, force: true})
+    }
+  }
+  event.reply('delete-turn', true)
+});
 
 ipcMain.on('add-turn-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
@@ -647,8 +668,6 @@ const createWindow = async () => {
     show: false,
     width: 1024,
     height: 728,
-    // minHeight: 600,
-    // minWidth: 800,
     maxHeight: 1440,
     maxWidth: 2560,
     icon: getAssetPath('icon.png'),

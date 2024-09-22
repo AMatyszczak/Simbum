@@ -71,14 +71,12 @@ export default function TurnComponent() {
         if(observedMainImage.current != null) {
           const height = observedMainImage.current.clientHeight
           if(height !== turnEventMainImageDimensions.height) {
-            console.log("observedMainImage.current", height, "turnEventMainImageDimensions.height:", turnEventMainImageDimensions.height)
             setTurnEventMainImageDimensions({width: 100, height: height});
           }
         }
       });
     resizeObserver.observe(observedMainImage.current)
 
-    console.log("location:", location)
     const turnIndex: number = allturnsIds.findIndex((id: string) => id == turnId)
     setTurnIndex(turnIndex)
     loadTurnById(familyId, turnId, 0)
@@ -90,24 +88,19 @@ export default function TurnComponent() {
   
   
   function loadTurnById(familyId: string, turnId: string, indexOfImageToDisplay: number) {
-    console.log("TurnComponent, loadTurnById", turnId)
     setTurnId(turnId)
     window.electron.ipcRenderer.once('get-turn', (arg: any) => {
-      console.log("loadTurnById, get-turn: arg:", arg)
       setPagesLoaded(true)
-      console.log("loadTurnById, displayedImageNo", indexOfImageToDisplay)
       loadTurnImages(familyId, turnId, indexOfImageToDisplay)
     });
     window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turnId]);  
   }
 
   function isLastTurnDisplayed(): boolean {
-    // console.log("isLastTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex >= allturnsIds.length)
     return turnIndex >= allturnsIds.length - 1
   }
 
   function isFirstTurnDisplayed(): boolean {
-    console.log("isFirstTurnDisplayed:", turnIndex, allturnsIds.length, turnIndex<= 0)
     return turnIndex <= 0
   }
 
@@ -128,9 +121,7 @@ export default function TurnComponent() {
   }
 
   function deleteMainEventImage(): any {
-    console.log("deleteCurrentPage click: length:", turnImages.length)
     if(turnImages.length >= 1) {
-      console.log("deleteCurrentPage familyId:", familyId, "turnId:", turnId, "pageId:", turnEventImageId)
       window.electron.ipcRenderer.sendMessage('page-image-deleted', [familyId, turnId, turnEventImageId]);
       
       loadTurnImages(familyId, turnId, 0) // what if I remove last image?
@@ -138,7 +129,6 @@ export default function TurnComponent() {
   }
   
   function handleDropOnMainImage(e: any) {
-    console.log("handleDropOnMainImage")
     e.preventDefault()
     
     setIsDrawing(false)
@@ -148,7 +138,6 @@ export default function TurnComponent() {
     if (file.type.includes('image/')) {
       setTurnEventMainImagePath(`file://${file.path}`);
 
-      console.log("handleDropOnMainImage, turnImages", turnImages, 'rurnEventImageId:', turnEventImageId)
       if(turnImages.length == 0) {
         window.electron.ipcRenderer.sendMessage('add-turn-image', [
           familyId,
@@ -196,12 +185,9 @@ export default function TurnComponent() {
   
   function handleDragOver(e: any) {
     e.preventDefault();
-    console.log("handleDragOver")
     if (isDragging) {
       let element: any = e.target.id == 'thumbnails-stack' ? e.target : e.target.parentElement
       
-      // console.log(e.target)
-      // console.log("handleDragOver, element height:", element.children.item(0).clientHeight)
       const thumbnailImageHeight = element.children.item(0)?.clientHeight
       const postionOfImageOnThumbnails = determinePositionOfImage(element, e.clientY, thumbnailImageHeight, false)
 
@@ -219,9 +205,7 @@ export default function TurnComponent() {
   function handleLeave(e: any) {
     e.preventDefault();
 
-    console.log("handleDragLeave, e.target", e.target.id, "e.target.parent:", e.target.parentElement.id)
-    
-    if(isDragging && e.relatedTarget.id != "thumbnails-stack") {
+    if(isDragging && e.relatedTarget.id != "thumbnails-stack" && e.relatedTarget.id != "single-thumbnail") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails])
       setIndexOfDraggedElement(-1)
@@ -233,11 +217,8 @@ export default function TurnComponent() {
   function handleDragEnter(e: any) {
     e.preventDefault();
 
-    console.log("handleDragEnter, e.target", e.target.id, "e.target.parent:", e.target.parentElement.id)
-
     if (e.target.parentElement.id == "thumbnails-stack" && !isDragging) {
       const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientY, e.target.parentElement.children.item(0).clientHeight, false)
-      // console.log("postionOfImageOnThumbnails:", postionOfImageOnThumbnails)
       
       let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
       let ele = {
@@ -261,12 +242,10 @@ export default function TurnComponent() {
     const parentElementBoundRect = element.getBoundingClientRect()
     const scrollTop = element.scrollTop;
     let relativeY = clientY - parentElementBoundRect.top + scrollTop; 
-    console.log("clientY", clientY, "relativeY:", relativeY, "parentElementBoundRect:", parentElementBoundRect.bottom, "scroollBottom", scrollTop)
     if (addImageHeight) {
       relativeY += imageHeight;
     }
     let postionOfImage = Math.floor(relativeY/imageHeight)
-    // console.log("relativeY:", relativeY, "imageHeight:", imageHeight, "positionOfImage:", postionOfImage)
     if (postionOfImage < 0 ) {
       postionOfImage = 0
     }
@@ -275,9 +254,7 @@ export default function TurnComponent() {
 
   function loadTurnImages(familyId: string, turnId: string, indexOfImageToDisplay: number) {
     window.electron.ipcRenderer.once('get-turn-images', (arg: any) => {
-      // console.log("loadTurnImages get-turn-images, arg:", arg, "turnId:", turnId )
       const thumbnails: {path: string, filename: string, id: string}[] = arg ? arg : []
-      // console.log("loadTurnImages, thumbnails:", thumbnails)
       if(thumbnails.length >0) {
         setImageHash(Date.now())
         setTurnEventImageId(thumbnails[indexOfImageToDisplay].id)
@@ -309,7 +286,6 @@ export default function TurnComponent() {
   }
 
   function onMainImageLoaded(e: any) {
-    console.log("onMainImageLoaded,e:", e," height:", e.target.clientHeight, "width:", e.target.clientWidth)
     setTurnEventMainImageDimensions({width: e.target.clientWidth, height: e.target.clientHeight})
   }
 
@@ -397,10 +373,12 @@ export default function TurnComponent() {
                 {showedThumbnails.map((thumbnail) => (
                   <img
                     id="single-thumbnail"
+                    className='single-thumbnail'
                     // srcSet={`${thumbnail.path}`}
                     src={`${thumbnail.path}?${imageHash}`}
                     alt="thumbnail"
                     loading="lazy"
+                    onClick={(e) => displayTurnEventImage(thumbnail.id)}
                   />
                 ))}
               </Stack>
