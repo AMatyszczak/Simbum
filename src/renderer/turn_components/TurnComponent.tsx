@@ -163,7 +163,8 @@ export default function TurnComponent() {
 
   function handleDropOnThumbnails(e: any) {
     e.preventDefault()
-    if(e.target.className == "turn-image-thumbnail-container" || e.target.className == "turn-image-thumbnail-list") {
+    console.log("dropOnThumbnails:", e.target.className)
+    if(e.target.className == "thumbnails-stack") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails]) 
     }
