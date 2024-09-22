@@ -304,22 +304,8 @@ ipcMain.on('get-family-gallery-data', async (event, arg) => {
         let familyPath = createPathToFamily(rootPath, family['id'])
         let familyName = family['name']
 
-        // const turnsMapFile = fs.readFileSync(path.join(familyPath, "turns_map.json"))
-        // const turnsMap = JSON.parse(turnsMapFile.toString())
-        // if(turnsMap['turns'].length <= 0) {
-          // familiesGalleryData.push({"id": family['id'], name: familyName, imagePath: "/home/adrian/Desktop/d6078377-4435-4820-b1ec-ba0266701a96.jpeg"})
-        // } else {
-          // const turnId = turnsMap["turns"][0]['id']
-  
-          // const turnPath = createPathToTurn(rootPath, family, turnId)
-          // let imagesMapFile = fs.readFileSync(path.join(turnPath, "images_map.json"));
-          // let imagesMap = JSON.parse(imagesMapFile.toString())
-          // let imageId = imagesMap["images"][0]['id']
-          // let imagePath = createPathToImage(rootPath, family, turnId['id'], imageId)}
-
-          const imagePath = path.join(familyPath, "familyCoverImage.png")
-          familiesGalleryData.push({"id": family['id'], name: familyName, imagePath: imagePath})
-        // } 
+        const imagePath = path.join(familyPath, "familyCoverImage.png")
+        familiesGalleryData.push({"id": family['id'], name: familyName, imagePath: imagePath})
       });
       event.reply('get-family-gallery-data', familiesGalleryData)
     }
@@ -359,29 +345,6 @@ ipcMain.on('add-family', async (event, args) => {
       fs.writeFileSync(path.join(familyPath, "turns_map.json"), JSON.stringify({"turns": []}))
       
       event.reply('add-family', familiesMap['families'])
-
-      
-      // familiesMap['families'].forEach((familyId: any) => {
-      //   let familyPath = createPathToFamily(rootPath, familyId['id'])
-      //   let familyTitle = "Family title placeholder"
-
-      //   const turnsMapFile = fs.readFileSync(path.join(familyPath, "turns_map.json"))
-      //   const turnsMap = JSON.parse(turnsMapFile.toString())
-      //   if(turnsMap['turns'].length <= 0) {
-      //     familiesGalleryData.push({"id": familyId['id'], title: familyTitle, imagePath: "/home/adrian/Desktop/d6078377-4435-4820-b1ec-ba0266701a96.jpeg"})
-      //   } else {
-      //     const turnId = turnsMap["turns"][0]['id']
-  
-      //     const turnPath = createPathToTurn(rootPath, familyId, turnId)
-      //     let imagesMapFile = fs.readFileSync(path.join(turnPath, "images_map.json"));
-      //     let imagesMap = JSON.parse(imagesMapFile.toString())
-      //     let imageId = imagesMap["images"][0]['id']
-      
-      //     familiesGalleryData.push({"id": familyId['id'], title: familyTitle, imagePath: createPathToImage(rootPath, familyId, turnId['id'], imageId)})
-      //   } 
-      // });
-      // console.log("reply to get-family-gallery-data:", familiesGalleryData)
-      // event.reply('add-new-family', familiesGalleryData)
     }
   }
 })
@@ -401,12 +364,7 @@ ipcMain.on('get-turn-gallery-data', async (event, arg) => {
       turnMap['turns'].forEach((turnId: any) => {
         const turnPath = createPathToTurn(rootPath, familyId, turnId['id'])
         const turnAvatarPath = path.join(turnPath, "turnAvatarImage.png")
-        // let imagesMapFile = fs.readFileSync(path.join(turnPath, "images_map.json"));
-        // let imagesMap = JSON.parse(imagesMapFile.toString())
-        // let imageId = imagesMap["images"][0]['id']
         let turnName = fs.readFileSync(path.join(turnPath, "title.txt")).toString();
-        // let turnDescription = fs.readFileSync(path.join(turnPath, "description.txt")).toString();
-        // let turnAvatarImage = fs.readFileSync(path.join(turnPath, "turnAvatarImage.png")).toString();
         
         turnGalleryData.push({turnId: turnId['id'], turnName: turnName, imagePath: turnAvatarPath})
       });
