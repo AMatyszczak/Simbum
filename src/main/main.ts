@@ -187,13 +187,7 @@ ipcMain.on('modify-turn', async (event, args) => {
     const turnName: string = args[2];
     const turnAvatarImagePath: string = args[3];
     
-    const familyPath = createPathToFamily(rootPath, familyId)
     const turnPath = createPathToTurn(rootPath, familyId, turnId)
-
-    // const pathToTurnsMap = path.join(familyPath, "turns_map.json")
-    // const turnsMapFile = fs.readFileSync(pathToTurnsMap)
-    // const turn = turnsMap["turns"].find((turnJSON: { id: string; filename: string }) => turnJSON.id === turnId, 0)
-    // console.log("found turn:", turn)
     
     if(turnName != null && turnName.length > 0) {
       const turnTitlePath = path.join(turnPath, "title.txt")
@@ -205,12 +199,6 @@ ipcMain.on('modify-turn', async (event, args) => {
       const newTurnAvatarImagePath = path.join(turnPath, 'turnAvatarImage.png') 
       fs.writeFileSync(newTurnAvatarImagePath, avatarImage);
     }
-    
-    // if (index > -1) {
-    //   turnsMap["turns"].splice(index, 1);
-    //   fs.writeFileSync(pathToTurnsMap, JSON.stringify(turnsMap))
-    //   fs.rmSync(turnPath, { recursive: true, force: true})
-    // }
   }
   event.reply('modify-turn', true)
 });
@@ -278,7 +266,6 @@ ipcMain.on('add-turn', async (event, args) => {
 
     // fs.writeFileSync(path.join(turnPath, "images_map.json"), JSON.stringify({'images':[{'id': firstImageId, "filename": firstImageId + ".png"}]}))
     // fs.writeFileSync(imagePath, placeHolderImage)
-    
     
     let turnsMapFile = fs.readFileSync(turnsMapPath)
     let turnsMap = JSON.parse(turnsMapFile.toString())
@@ -348,6 +335,35 @@ ipcMain.on('get-family-gallery-data', async (event, arg) => {
   }
 }) 
 
+ipcMain.on('modify-family', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const familyId: string = args[0];
+    const familyName: string = args[1];
+    const familyAvatarImagePath: string = args[2];
+    
+    const familyPath = createPathToFamily(rootPath, familyId)
+    console.log("modify-family. familyId:", familyId, "familyName:", familyName, "familyAvatarImagePath:", familyAvatarImagePath)
+    if(familyName != null && familyName.length > 0) {
+
+      let familiesMapFile = fs.readFileSync(path.join(rootPath, "families_map.json"))
+      let familiesMap = JSON.parse(familiesMapFile.toString())
+      const familyIndex = familiesMap['families'].findIndex((family: any) => family['id'] === familyId)
+      console.log("modify-family", familiesMap['families'], "familyIndex:", familyIndex)
+      if (familyIndex > -1) {
+        familiesMap["families"][familyIndex]['name'] = familyName;
+        fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify(familiesMap))
+      }
+    }
+
+    if(familyAvatarImagePath != null && familyAvatarImagePath.length > 0) {
+      const avatarImage = fs.readFileSync(familyAvatarImagePath);
+      const newFamilyAvatarImagePath = path.join(familyPath, 'familyCoverImage.png') 
+      fs.writeFileSync(newFamilyAvatarImagePath, avatarImage);
+    }
+  }
+  event.reply('modify-family', true)
+});
 
 ipcMain.on('add-family', async (event, args) => {
   const rootPath: string = store.get('dataPath');

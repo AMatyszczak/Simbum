@@ -23,6 +23,7 @@ export type Channels =
   | 'get-family'
   | 'get-family-gallery-data'
   | 'add-family'
+  | 'modify-family'
   | 'delete-family'
   | 'edit-family';
 

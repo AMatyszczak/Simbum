@@ -61,7 +61,6 @@ export default function TurnGallery() {
     const navigate = useNavigate()
     const [imageHash, setImageHash] = useState(Date.now())
 
-
     const [galleryData, setGalleryData] = useState([])
 
     const [modalOfTypeCreate, setModalOfTypeCreate] = useState<boolean>(true)
@@ -340,44 +339,6 @@ export default function TurnGallery() {
                     </ImageListItem>
                 ))}
             </ImageList>
-
-            {/* <Grid container >
-                {
-                galleryData.map((turn: any) => (
-                    <Card sx={{margin: 2, maxWidth: 500, flexGrowi: 1}}
-                            onClick={(e) => onTurnClick(e, turn)}
-                    >
-                        <Paper
-
-                            sx={{
-                                cursor: 'pointer',
-                                p: 2,
-                                flexGrow: 1,
-                                backgroundColor: (theme) =>
-                                theme.palette.mode === 'dark' ? '#1A2027' : '#fff',
-                            }}
-                            >
-                            <Grid container spacing={1}>
-                                <Grid item>
-                                    <Box display="flex" sx={{ width: 128, height: 128 }} >
-                                        <Img alt="complex" src={"file://" + turn["imagePath"]} />
-                                    </Box>
-
-                                </Grid>
-                                <Grid item xs={12} sm container>
-                                    <Grid item xs container direction="column" spacing={2}>
-                                        <Grid item xs>
-                                            <Typography gutterBottom variant="subtitle1" component="div">
-                                                {turn['turnName']}
-                                            </Typography>
-                                        </Grid>
-                                    </Grid>
-                            </Grid> 
-                            </Grid>
-                        </Paper>
-                    </Card>
-                ))}
-            </Grid> */}
         </Box>
     )
 }

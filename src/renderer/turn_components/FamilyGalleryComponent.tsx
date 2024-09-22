@@ -67,15 +67,35 @@ const ImageListItemWithStyle = styled(ImageListItem)(({ theme }) => ({
 export default function FamilyGalleryComponent() {
     const navigate = useNavigate();
     const [galleryData, setFamilyData] = useState([])
-    
-    const [newFamilyOpen, setNewFamilyModalOpen] = useState(false)
-    const [newFamilyName, setNewFamilyName] = useState("")
-    const [newFamilyImagePath, setNewFamilyAvatarPath] = useState("")
+    const [imageHash, setImageHash] = useState(Date.now())
+   
+    const [modalOfTypeCreate, setModalOfTypeCreate] = useState<boolean>(false)
+    const [createEditFamilyModalOpen, setCreateEditFamilyModalOpen] = useState(false)
+    const [createEditFamilyId, setCreateEditFamilyId] = useState("")
+    const [createEditFamilyName, setCreateEditFamilyName] = useState("")
+    const [createEditFamilyAvatarPath, setCreateEditFamilyAvatarPath] = useState("")
 
-    const handleNewFamilyNameChange = (e: any) => setNewFamilyName(e.target.value)
+    const handleCreateEditFamilyNameChange = (e: any) => setCreateEditFamilyName(e.target.value)
 
-    const handleOpenNewFamilyModal = () => setNewFamilyModalOpen(true)
-    const handleCloseNewFamilyModal = () => setNewFamilyModalOpen(false)
+    const handleOpenNewFamilyModal = () => {
+        setModalOfTypeCreate(true)
+        setCreateEditFamilyId('')
+        setCreateEditFamilyName('')
+        setCreateEditFamilyAvatarPath('')
+
+        setCreateEditFamilyModalOpen(true)
+    }
+
+    const handleEditFamilyModalOpen = (familyId: string, familyName: string, familyAvatarImagePath: string) => {
+        setModalOfTypeCreate(false)
+        setCreateEditFamilyId(familyId)
+        setCreateEditFamilyName(familyName)
+        setCreateEditFamilyAvatarPath(familyAvatarImagePath)
+
+        setCreateEditFamilyModalOpen(true)        
+    }
+
+    const handleCloseNewFamilyModal = () => setCreateEditFamilyModalOpen(false)
 
     const [deleteFamilyDialogOpen, setDeleteFamilyDialogOpen] = React.useState<boolean>(false);
     const [deleteFamilyId, setDeleteFamilyId] = React.useState<string>("")
@@ -98,15 +118,14 @@ export default function FamilyGalleryComponent() {
 
 
     useEffect(() => {
-        loadFamillyGalleryData()
+        loadFamilyGalleryData()
     }, [])
     
-    function loadFamillyGalleryData() {
+    function loadFamilyGalleryData() {
         
-        console.log("loadFamillyGalleryData")
         window.electron.ipcRenderer.once('get-family-gallery-data', (arg: any) => {
-            console.log("got families:", arg)
             setFamilyData(arg);
+            setImageHash(Date.now())
         })
 
         window.electron.ipcRenderer.sendMessage('get-family-gallery-data', []);
@@ -130,27 +149,48 @@ export default function FamilyGalleryComponent() {
         const file = e.dataTransfer.files.item(0);
 
         if (file.type.includes('image/')) {
-            setNewFamilyAvatarPath(file.path);
+            setCreateEditFamilyAvatarPath(file.path);
         }
         e.stopPropagation()
     }
+
+
+    function modifyFamily(e: any) {
+        const familyId: string = createEditFamilyId
+        const familyName: string = createEditFamilyName
+        const familyAvatarPath: string = createEditFamilyAvatarPath
+
+        window.electron.ipcRenderer.once('modify-family', (arg: any) => {
+            console.log("modify-family successful")
+            loadFamilyGalleryData()
+        })
+        
+        console.log("modifyFamily, ", "turnId:", familyId, "turnName:", familyName, "turnAvatarPath:", familyAvatarPath)
+        setCreateEditFamilyModalOpen(false)
+        if(familyId != null && familyId.length > 0) {
+            window.electron.ipcRenderer.sendMessage('modify-family', [familyId, familyName, familyAvatarPath])
+        }
+        setCreateEditFamilyId("")
+        setCreateEditFamilyName("")
+        setCreateEditFamilyAvatarPath("")
+    }
     
-    function addNewFamily(e: any) {
+    function addFamily(e: any) {
         window.electron.ipcRenderer.once('add-family', (arg: any) => {
             console.log("new family added, arg:", arg)
-            loadFamillyGalleryData()
+            loadFamilyGalleryData()
             handleCloseNewFamilyModal()
-            setNewFamilyAvatarPath("")
-            setNewFamilyName("")
+            setCreateEditFamilyAvatarPath("")
+            setCreateEditFamilyName("")
         })
     
-        window.electron.ipcRenderer.sendMessage('add-family', [newFamilyImagePath, newFamilyName, 0])
+        window.electron.ipcRenderer.sendMessage('add-family', [createEditFamilyAvatarPath, createEditFamilyName, 0])
     }
 
     function deleteFamily(e: any, familyId: string) {
         window.electron.ipcRenderer.once('delete-family', (arg: any) => {
             console.log("delete-family successful")
-            loadFamillyGalleryData()
+            loadFamilyGalleryData()
         })
         
         console.log("deleteFamily, e:",e, "familyId:", familyId)
@@ -191,7 +231,7 @@ export default function FamilyGalleryComponent() {
             </Dialog>
         
             <Modal
-                open={newFamilyOpen}
+                open={createEditFamilyModalOpen}
                 onClose={handleCloseNewFamilyModal}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
@@ -200,11 +240,11 @@ export default function FamilyGalleryComponent() {
                     <Stack direction="column">
                         <AppBar position='static'>
                             <Typography id="modal-modal-title" variant="h4" align="center" sx={{background: "primary"}}>
-                                Dodaj nową rodzinę
+                                {modalOfTypeCreate ? "Dodaj nową rodzinę" : `Edytuj`}
                             </Typography>
                         </AppBar>
-                        <TextField value={newFamilyName}
-                            onChange={handleNewFamilyNameChange}
+                        <TextField value={createEditFamilyName}
+                            onChange={handleCreateEditFamilyNameChange}
                             id="outlined-basic"
                             label="Nazwa"
                             variant="filled" 
@@ -212,18 +252,18 @@ export default function FamilyGalleryComponent() {
                         <Box display='flex' 
                             alignItems='center'
                             justifyContent='center'
-                            sx={{ minHeight: '320px', backgroundColor: newFamilyImagePath !== null && newFamilyImagePath.length > 0 ? 'white' : 'grey'}}
+                            sx={{ minHeight: '320px', backgroundColor: createEditFamilyAvatarPath !== null && createEditFamilyAvatarPath.length > 0 ? 'white' : 'grey'}}
                             onDragOver={onNewFamilyImageOver} 
                             onDrop={(e) => onNewFamilyImageDrop(e)}> 
                                 {
-                                    (newFamilyImagePath != null && newFamilyImagePath.length > 0) ?
-                                        <img src={"file://"+ newFamilyImagePath} style={{'objectFit': 'contain',"width": "100%"}}></img>                                
+                                    (createEditFamilyAvatarPath != null && createEditFamilyAvatarPath.length > 0) ?
+                                        <img src={"file://"+ createEditFamilyAvatarPath} style={{'objectFit': 'contain',"width": "100%"}}></img>                                
                                         : <AddPhotoAlternate style={{ fontSize: 40, color: 'white', alignSelf: 'center', justifySelf: 'center'}} onDrop={(e) => onNewFamilyImageDrop(e)}/>
                                     
                                 }
                         </Box>
-                        <StyledFab color='primary' onClick={addNewFamily} >
-                            <Add />
+                        <StyledFab color='primary' onClick={(e) => {modalOfTypeCreate ? addFamily(e) : modifyFamily(e)}} >
+                            {modalOfTypeCreate ? <Add /> : <Edit />}
                         </StyledFab>
                     </Stack>
                 </Box>
@@ -265,7 +305,7 @@ export default function FamilyGalleryComponent() {
                     <ImageListItem key={data["imagePath"]}>
                         <ImgWithPointer
                             srcSet={`file://${data["imagePath"]}`}
-                            src={`file://${data["imagePath"]}`}
+                            src={`file://${data["imagePath"]}?${imageHash}`}
                             style={{ width: '100%'}}
                             alt={data['name']}
                             loading="lazy"
@@ -283,6 +323,7 @@ export default function FamilyGalleryComponent() {
                                         color="inherit"
                                         aria-label="go back"
                                         sx={{padding: 0, color: 'white'}}
+                                        onClick={(e: any) => handleEditFamilyModalOpen(data['id'], data['name'], data['imagePath'])}
                                         >
                                         <Edit />
                                     </IconButton>
