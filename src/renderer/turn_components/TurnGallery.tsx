@@ -1,4 +1,4 @@
-import { Add, AddPhotoAlternate, ArrowBack, Delete, Edit} from "@mui/icons-material";
+import { Add, Edit, AddPhotoAlternate, ArrowBack, Delete} from "@mui/icons-material";
 import SettingsIcon from '@mui/icons-material/Settings';
 import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button, ImageList, ImageListItem, ImageListItemBar, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
 import React from "react";
@@ -59,17 +59,36 @@ export default function TurnGallery() {
 
     const location = useLocation() as LocationState
     const navigate = useNavigate()
+    const [imageHash, setImageHash] = useState(Date.now())
+
 
     const [galleryData, setGalleryData] = useState([])
 
-    const [newTurnModalOpen, setNewTurnModalOpen] = useState(false)
-    const [newTurnName, setNewTurnName] = useState("")
-    const [newTurnImagePath, setNewTurnAvatarPath] = useState("")
+    const [modalOfTypeCreate, setModalOfTypeCreate] = useState<boolean>(true)
+    const [createEditTurnModalOpen, setCreateEditTurnModalOpen] = useState(false)
+    const [createEditTurnId, setCreateEditTurnId] = useState("")
+    const [createEditTurnName, setCreateEditTurnName] = useState("")
+    const [createEditTurnAvatarPath, setCreateEditTurnAvatarPath] = useState("")
 
-    const handleNewTurnTitleChange = (e: any) => setNewTurnName(e.target.value)
+    const handleCreateEditTurnTitleChange = (e: any) => setCreateEditTurnName(e.target.value)
 
-    const handleOpenNewTurnModal = () => setNewTurnModalOpen(true)
-    const handleCloseNewTurnModal = () => setNewTurnModalOpen(false)
+    const handleCreateTurnModalOpen = () => {
+        setModalOfTypeCreate(true)
+        setCreateEditTurnId("")
+        setCreateEditTurnName("")
+        setCreateEditTurnAvatarPath("")
+
+        setCreateEditTurnModalOpen(true)
+    }
+    const handleEditTurnModalOpen = (turnId: string, turnName: string, turnAvatarPath: string) => { 
+        setModalOfTypeCreate(false)
+        setCreateEditTurnId(turnId)
+        setCreateEditTurnName(turnName)
+        setCreateEditTurnAvatarPath(turnAvatarPath)
+
+        setCreateEditTurnModalOpen(true)
+    }
+    const handleCloseCreateEditTurnModal = () => setCreateEditTurnModalOpen(false)
     const handleReturnToPreviousPage = () => navigate(-1)
 
     const [deleteTurnDialogOpen, setDeleteTurnDialogOpen] = React.useState<boolean>(false);
@@ -99,14 +118,13 @@ export default function TurnGallery() {
 
     function addNewTurn(e: any) {
         window.electron.ipcRenderer.once('add-turn', (arg: any) => {
-            console.log("new turn added, arg:", arg)
             loadTurnGalleryData(location.state.family.id)
-            handleCloseNewTurnModal()
-            setNewTurnAvatarPath("")
-            setNewTurnName("")
+            handleCloseCreateEditTurnModal()
+            setCreateEditTurnAvatarPath("")
+            setCreateEditTurnName("")
         })
     
-        window.electron.ipcRenderer.sendMessage('add-turn', [location.state.family.id, newTurnName, newTurnImagePath])
+        window.electron.ipcRenderer.sendMessage('add-turn', [location.state.family.id, createEditTurnName, createEditTurnAvatarPath])
     }
 
     function deleteTurn(e: any, turnId: string) {
@@ -124,9 +142,31 @@ export default function TurnGallery() {
         setDeleteTurnId("")
     }
 
+    function modifyTurn(e: any) {
+        const turnId: string = createEditTurnId
+        const turnName: string = createEditTurnName
+        const turnAvatarPath: string = createEditTurnAvatarPath
+
+        window.electron.ipcRenderer.once('modify-turn', (arg: any) => {
+            console.log("modify-turn successful")
+            loadTurnGalleryData(location.state.family.id)
+        })
+        
+        console.log("modifyTurn, e:",e, "turnId:", turnId, "turnName:", turnName, "turnAvatarPath:", turnAvatarPath)
+        setCreateEditTurnModalOpen(false)
+        if(turnId != null && turnId.length > 0) {
+            window.electron.ipcRenderer.sendMessage('modify-turn', [location.state.family.id, turnId, turnName, turnAvatarPath])
+        }
+        setCreateEditTurnId("")
+        setCreateEditTurnName("")
+        setCreateEditTurnAvatarPath("")
+    }
+
     function loadTurnGalleryData(familyId: string){
         window.electron.ipcRenderer.once('get-turn-gallery-data', (arg:any) => {
             console.log('getTurnGalleryData, data:', arg)
+            setImageHash(Date.now())
+
             setGalleryData(arg)
         })
 
@@ -149,7 +189,7 @@ export default function TurnGallery() {
         const file = e.dataTransfer.files.item(0);
 
         if (file.type.includes('image/')) {
-            setNewTurnAvatarPath(`${file.path}`);
+            setCreateEditTurnAvatarPath(`${file.path}`);
         }
         e.stopPropagation()
     }
@@ -168,8 +208,8 @@ export default function TurnGallery() {
     return(
         <Box sx={{ flexGrow: 1 }}>
             <Modal
-                open={newTurnModalOpen}
-                onClose={handleCloseNewTurnModal}
+                open={createEditTurnModalOpen}
+                onClose={handleCloseCreateEditTurnModal}
                 aria-labelledby="modal-modal-title"
                 aria-describedby="modal-modal-description"
             >
@@ -177,20 +217,20 @@ export default function TurnGallery() {
                     <Stack direction="column">
                         <AppBar position='static'>
                             <Typography id="modal-modal-title" variant="h4" align="center" sx={{background: "primary"}}>
-                                Dodaj nową turę
+                                {modalOfTypeCreate ? "Dodaj nową turę" : `Edytuj`}
                             </Typography>
                         </AppBar>
-                        <TextField value={newTurnName} onChange={handleNewTurnTitleChange} id="outlined-basic" label="Nazwa" variant="filled" />
+                        <TextField value={createEditTurnName} onChange={handleCreateEditTurnTitleChange} id="outlined-basic" label="Nazwa" variant="filled" />
                         <Box display='flex' alignItems='center' justifyContent="center" sx={{width: 400, height: 200, backgroundColor: 'grey'}} onDragOver={onNewTurnImageDragOver} onDrop={(e) => onNewTurnImageDrop(e)}> 
                                 {
-                                    (newTurnImagePath != null && newTurnImagePath.length > 0) ?
-                                        <img src={"file://"+ newTurnImagePath} style={{"maxHeight": "200px"}}></img>                                
+                                    (createEditTurnAvatarPath != null && createEditTurnAvatarPath.length > 0) ?
+                                        <img src={"file://"+ createEditTurnAvatarPath} style={{"maxHeight": "200px"}}></img>                                
                                         : <AddPhotoAlternate style={{ fontSize: 40, color: 'white'}} onDrop={(e) => onNewTurnImageDrop(e)}/>
                                     
                                 }
                         </Box>
-                        <StyledFab color='primary' onClick={addNewTurn} >
-                            <Add />
+                        <StyledFab color='primary' onClick={(e) => {modalOfTypeCreate ? addNewTurn(e) : modifyTurn(e)}} >
+                            {modalOfTypeCreate ? <Add /> : <Edit />}
                         </StyledFab>
                     </Stack>
                 </Box>
@@ -233,9 +273,9 @@ export default function TurnGallery() {
                         size="large"
                         edge="start"
                         color="inherit"
-                        aria-label="add family"
+                        aria-label="add turn"
                         sx={{ mr: 2 }}
-                        onClick={handleOpenNewTurnModal}
+                        onClick={handleCreateTurnModalOpen}
                     >
                         <Add />
                     </IconButton>
@@ -263,7 +303,7 @@ export default function TurnGallery() {
                     <ImageListItem key={turn["imagePath"]}>
                         <ImgWithPointer
                             srcSet={`file://${turn["imagePath"]}`}
-                            src={`file://${turn["imagePath"]}`}
+                            src={`file://${turn["imagePath"]}?${imageHash})`}
                             style={{ width: '100%'}}
                             alt={turn['name']}
                             loading="lazy"
@@ -280,6 +320,7 @@ export default function TurnGallery() {
                                         color="inherit"
                                         aria-label="go back"
                                         sx={{padding: 0, color: 'white'}}
+                                        onClick={(e: any) => handleEditTurnModalOpen(turn['turnId'], turn['turnName'], turn['imagePath'])}
                                         >
                                         <Edit />
                                     </IconButton>

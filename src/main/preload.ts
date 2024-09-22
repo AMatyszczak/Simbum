@@ -10,6 +10,7 @@ export type Channels =
   | 'settings-select-path'
   | 'electron-store-get'
   | 'delete-turn'
+  | 'modify-turn'
   | 'add-turn'
   | 'get-turn-name'
   | 'get-turn-description'

@@ -179,6 +179,42 @@ ipcMain.on('delete-turn', async (event, args) => {
   event.reply('delete-turn', true)
 });
 
+ipcMain.on('modify-turn', async (event, args) => {
+  const rootPath: string = store.get('dataPath');
+  if (rootPath != null) {
+    const familyId: string = args[0];
+    const turnId: string = args[1];
+    const turnName: string = args[2];
+    const turnAvatarImagePath: string = args[3];
+    
+    const familyPath = createPathToFamily(rootPath, familyId)
+    const turnPath = createPathToTurn(rootPath, familyId, turnId)
+
+    // const pathToTurnsMap = path.join(familyPath, "turns_map.json")
+    // const turnsMapFile = fs.readFileSync(pathToTurnsMap)
+    // const turn = turnsMap["turns"].find((turnJSON: { id: string; filename: string }) => turnJSON.id === turnId, 0)
+    // console.log("found turn:", turn)
+    
+    if(turnName != null && turnName.length > 0) {
+      const turnTitlePath = path.join(turnPath, "title.txt")
+      fs.writeFileSync(turnTitlePath, turnName);
+    }
+
+    if(turnAvatarImagePath != null && turnAvatarImagePath.length > 0) {
+      const avatarImage = fs.readFileSync(turnAvatarImagePath);
+      const newTurnAvatarImagePath = path.join(turnPath, 'turnAvatarImage.png') 
+      fs.writeFileSync(newTurnAvatarImagePath, avatarImage);
+    }
+    
+    // if (index > -1) {
+    //   turnsMap["turns"].splice(index, 1);
+    //   fs.writeFileSync(pathToTurnsMap, JSON.stringify(turnsMap))
+    //   fs.rmSync(turnPath, { recursive: true, force: true})
+    // }
+  }
+  event.reply('modify-turn', true)
+});
+
 ipcMain.on('add-turn-image', async (event, args) => {
   const rootPath: string = store.get('dataPath');
   if (rootPath != null) {
@@ -480,41 +516,6 @@ ipcMain.on('get-turn-images', async (event, args) => {
       event.reply('get-turn-images', imagesMap["images"])
     }
   }
-
-  // ipcMain.on('is-')
-
-  // const rootPath: string = store.get('dataPath');
-  // if (rootPath != null) {
-    // const turnId = args[0]
-    // if (turnId == null)  event.reply('get-turn-images', null);
-    // } else {
-      // const turnPath = createPathToTurn(rootPath, turnId);
-      // const turnExists = fs.existsSync(turnPath);
-      // const pathToImages = path.join(turnPath, "images")
-      // if (!turnExists) {
-        // event.reply('get-turn-images', null);
-      // }
-      // const turnImagesFolderExists = fs.existsSync(pathToImages);
-      // if (!turnImagesFolderExists) {
-        // event.reply('get-turn-images', null);
-      // }
-      // const turnTitleExists = fs.existsSync(path.join(turnPath, 'title.txt'))
-      // if(!turnTitleExists) {
-        // event.reply('get-turn-images', null);
-      // }
-      // const turnDescriptionExists = fs.existsSync(path.join(turnPath, 'description.txt'))
-      // if(!turnDescriptionExists) {
-        // event.reply('get-turn-images', null);
-      // }
-      // let imagesNames = fs.readdirSync(pathToImages)
-      // let imagesPaths: {path: string, id: number}[] = []
-      // for (let imageName of imagesNames) {
-        // imagesPaths.push({path: `file://${pathToImages}/${imageName}`, id: Number(imageName.split('.')[0])})
-      // }
-      // imagesPaths = imagesPaths != null ? imagesPaths : [] 
-      // event.reply('get-turn-images', imagesPaths);
-    // }
-  // }
 });
 
 ipcMain.on('electron-store-get', async (event, val) => {
