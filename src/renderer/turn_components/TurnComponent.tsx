@@ -138,6 +138,7 @@ export default function TurnComponent() {
   }
   
   function handleDropOnMainImage(e: any) {
+    console.log("handleDropOnMainImage")
     e.preventDefault()
     
     setIsDrawing(false)
@@ -192,13 +193,17 @@ export default function TurnComponent() {
     } 
     e.stopPropagation();
   }; 
-
+  
   function handleDragOver(e: any) {
     e.preventDefault();
+    console.log("handleDragOver")
     if (isDragging) {
       let element: any = e.target.id == 'thumbnails-stack' ? e.target : e.target.parentElement
-
-      const postionOfImageOnThumbnails = determinePositionOfImage(element, e.clientY, false)
+      
+      // console.log(e.target)
+      // console.log("handleDragOver, element height:", element.children.item(0).clientHeight)
+      const thumbnailImageHeight = element.children.item(0)?.clientHeight
+      const postionOfImageOnThumbnails = determinePositionOfImage(element, e.clientY, thumbnailImageHeight, false)
 
       if (indexOfDraggedElement !== postionOfImageOnThumbnails) {
         const thumbs = [...savedThumbnails]
@@ -231,8 +236,8 @@ export default function TurnComponent() {
     console.log("handleDragEnter, e.target", e.target.id, "e.target.parent:", e.target.parentElement.id)
 
     if (e.target.parentElement.id == "thumbnails-stack" && !isDragging) {
-      const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientY, false)
-      console.log("postionOfImageOnThumbnails:", postionOfImageOnThumbnails)
+      const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientY, e.target.parentElement.children.item(0).clientHeight, false)
+      // console.log("postionOfImageOnThumbnails:", postionOfImageOnThumbnails)
       
       let thumbs: {path: string, filename: string, id: string}[] = [...savedThumbnails]
       let ele = {
@@ -251,17 +256,17 @@ export default function TurnComponent() {
     }
   }
 
-  function determinePositionOfImage(element: any, clientY: any, addImageHeight: boolean) {
-    let imageHeight = 120 + 8;
-    let parentElementBoundRect = element.getBoundingClientRect()
-    // console.log("parentElementBoundRect:", parentElementBoundRect)
-    const scrollBottom = element.scrollBottom;
-    let relativeY = clientY - parentElementBoundRect.bottom + scrollBottom; 
+  function determinePositionOfImage(element: HTMLElement, clientY: any, thumbnailImageHeight: number, addImageHeight: boolean) {
+    const imageHeight = thumbnailImageHeight;
+    const parentElementBoundRect = element.getBoundingClientRect()
+    const scrollTop = element.scrollTop;
+    let relativeY = clientY - parentElementBoundRect.top + scrollTop; 
+    console.log("clientY", clientY, "relativeY:", relativeY, "parentElementBoundRect:", parentElementBoundRect.bottom, "scroollBottom", scrollTop)
     if (addImageHeight) {
       relativeY += imageHeight;
     }
     let postionOfImage = Math.floor(relativeY/imageHeight)
-    console.log("relativeX:", relativeY, "imageHeight:", imageHeight, "positionOfImage:", postionOfImage)
+    // console.log("relativeY:", relativeY, "imageHeight:", imageHeight, "positionOfImage:", postionOfImage)
     if (postionOfImage < 0 ) {
       postionOfImage = 0
     }
@@ -362,7 +367,10 @@ export default function TurnComponent() {
             </Box>
               <Box id="majne" sx={{display: 'flex', height:'100%'}}                   
                   onResize={onMainImageLoaded}
-                  onResizeCapture={onMainImageLoaded} >
+                  onResizeCapture={onMainImageLoaded}
+                  onDrop={handleDropOnMainImage}
+                  onDragOver={handleDragOver}
+                   >
                 <img
                   ref={observedMainImage}
                   id="main-image"
@@ -385,7 +393,7 @@ export default function TurnComponent() {
                   onDragOver={(e) => handleDragOver(e)}
                   onDrop={(e) => handleDropOnThumbnails(e)}
                   maxHeight={turnEventMainImageDimensions.height}
-                  sx={{ padding: 0.5, overflowY: 'auto', maxWidth: '10%'}}>
+                  sx={{ padding: 0.5, overflowY: 'auto', maxWidth: '10%', zIndex: 99}}>
                 {showedThumbnails.map((thumbnail) => (
                   <img
                     id="single-thumbnail"
@@ -402,26 +410,6 @@ export default function TurnComponent() {
               </ButtonBase>
             </Box>
           </Grid>
-          {/* <div className='turn-image-thumbnail-list' 
-            onDragEnter={(e) => handleDragEnter(e)} 
-            onDragLeave={(e) => handleLeave(e)} 
-            onDragOver={(e) => handleDragOver(e)}
-            onDrop={(e) => handleDropOnThumbnails(e)} 
-            >
-              {
-                showedThumbnails.map((thumbnail) => (
-                  <div className='turn-image-thumbnail-container'>
-                    <img 
-                      draggable="false"
-                      src={`${thumbnail.path}?${imageHash}`}
-                      key={thumbnail.id} 
-                      className={isDragging ? "turn-image-thumbnail thumbnail-drag-overlay" : "turn-image-thumbnail"} 
-                      onClick={(e) => displayTurnEventImage(thumbnail.id)}
-                    />
-                  </div>
-                ))
-              }
-            </div> */}
             <Box height={0} flex={"1 1 auto"} display='flex' sx={{ margin:1, padding:1, backgroundColor: "white"}}>
               <DescriptionEditor familyId={familyId} turnId={turnId} overflow="hidden"/>
             </Box>
