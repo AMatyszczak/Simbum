@@ -239,7 +239,8 @@ export default function TurnComponent() {
   }
 
   function determinePositionOfImage(element: HTMLElement, clientY: any, thumbnailImageHeight: number, addImageHeight: boolean) {
-    const imageHeight = thumbnailImageHeight;
+    const margin = 8;
+    const imageHeight = thumbnailImageHeight + margin;
     const parentElementBoundRect = element.getBoundingClientRect()
     const scrollTop = element.scrollTop;
     let relativeY = clientY - parentElementBoundRect.top + scrollTop; 
@@ -247,7 +248,8 @@ export default function TurnComponent() {
       relativeY += imageHeight;
     }
     let postionOfImage = Math.floor(relativeY/imageHeight)
-    if (postionOfImage < 0 ) {
+    console.log("relativeY:", relativeY, "positionOfImage:", postionOfImage)
+    if (postionOfImage < 0) {
       postionOfImage = 0
     }
     return postionOfImage
