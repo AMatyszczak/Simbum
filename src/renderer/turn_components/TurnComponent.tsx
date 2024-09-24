@@ -248,7 +248,6 @@ export default function TurnComponent() {
       relativeY += imageHeight;
     }
     let postionOfImage = Math.floor(relativeY/imageHeight)
-    console.log("relativeY:", relativeY, "positionOfImage:", postionOfImage)
     if (postionOfImage < 0) {
       postionOfImage = 0
     }
