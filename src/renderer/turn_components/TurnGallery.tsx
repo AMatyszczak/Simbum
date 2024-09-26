@@ -1,6 +1,6 @@
-import { Add, Edit, AddPhotoAlternate, ArrowBack, Delete} from "@mui/icons-material";
+import { Add, Edit, Done, AddPhotoAlternate, ArrowBack, Delete} from "@mui/icons-material";
 import SettingsIcon from '@mui/icons-material/Settings';
-import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button, ImageList, ImageListItem, ImageListItemBar, Dialog, DialogActions, DialogContent, DialogTitle } from "@mui/material";
+import { Grid, ButtonBase, Paper, Box, Typography, styled, AppBar, IconButton, Toolbar, Modal, Stack, TextField, Fab, Card, Button, ImageList, ImageListItem, ImageListItemBar, Dialog, DialogActions, DialogContent, DialogTitle, CssBaseline } from "@mui/material";
 import React from "react";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
@@ -37,13 +37,6 @@ const StyledFab = styled(Fab)({
   left: 0,
   right: 0,
   margin: '0 auto',
-});
-
-const Img = styled('img')({
-  margin: 'auto',
-  display: 'block',
-  maxWidth: '100%',
-  maxHeight: '100%',
 });
 
 type LocationState = {
@@ -206,6 +199,8 @@ export default function TurnGallery() {
 
     return(
         <Box sx={{ flexGrow: 1 }}>
+            <CssBaseline />
+
             <Modal
                 open={createEditTurnModalOpen}
                 onClose={handleCloseCreateEditTurnModal}
@@ -229,7 +224,7 @@ export default function TurnGallery() {
                                 }
                         </Box>
                         <StyledFab color='primary' onClick={(e) => {modalOfTypeCreate ? addNewTurn(e) : modifyTurn(e)}} >
-                            {modalOfTypeCreate ? <Add /> : <Edit />}
+                            {modalOfTypeCreate ? <Add /> : <Done/>}
                         </StyledFab>
                     </Stack>
                 </Box>

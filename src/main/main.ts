@@ -320,15 +320,16 @@ ipcMain.on('get-family-gallery-data', async (event, arg) => {
   if(rootPath != null) {
     const familiesMapFilePath = path.join(rootPath, "families_map.json")
     if(fs.existsSync(familiesMapFilePath)) {
-      let familiesMapFile = fs.readFileSync(path.join(rootPath, "families_map.json"))
-      let familiesMap = JSON.parse(familiesMapFile.toString())
-      let familiesGalleryData: {id: string, name: string, imagePath: string}[] = []
+      const familiesMapFile = fs.readFileSync(path.join(rootPath, "families_map.json"))
+      const familiesMap = JSON.parse(familiesMapFile.toString())
+      const familiesGalleryData: {id: string, name: string, place: string, imagePath: string}[] = []
       familiesMap['families'].forEach((family: any) => {
-        let familyPath = createPathToFamily(rootPath, family['id'])
-        let familyName = family['name']
+        const familyPath = createPathToFamily(rootPath, family['id'])
+        const familyName = family['name']
+        const familyPlace = family['place']
 
         const imagePath = path.join(familyPath, "familyCoverImage.png")
-        familiesGalleryData.push({"id": family['id'], name: familyName, imagePath: imagePath})
+        familiesGalleryData.push({"id": family['id'], name: familyName, place: familyPlace, imagePath: imagePath})
       });
       event.reply('get-family-gallery-data', familiesGalleryData)
     }
@@ -340,7 +341,8 @@ ipcMain.on('modify-family', async (event, args) => {
   if (rootPath != null) {
     const familyId: string = args[0];
     const familyName: string = args[1];
-    const familyAvatarImagePath: string = args[2];
+    const familyPlace: string = args[2];
+    const familyAvatarImagePath: string = args[3];
     
     const familyPath = createPathToFamily(rootPath, familyId)
     console.log("modify-family. familyId:", familyId, "familyName:", familyName, "familyAvatarImagePath:", familyAvatarImagePath)
@@ -352,6 +354,7 @@ ipcMain.on('modify-family', async (event, args) => {
       console.log("modify-family", familiesMap['families'], "familyIndex:", familyIndex)
       if (familyIndex > -1) {
         familiesMap["families"][familyIndex]['name'] = familyName;
+        familiesMap["families"][familyIndex]['place'] = familyPlace;
         fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify(familiesMap))
       }
     }
@@ -371,9 +374,10 @@ ipcMain.on('add-family', async (event, args) => {
     const familiesMapFilePath = path.join(rootPath, "families_map.json")
     if(fs.existsSync(familiesMapFilePath)) {
       
-      var argsImagePath = args[0]
-      var argsFamilyName = args[1]
-      var argsFamilyIndex = args[2]
+      const argsImagePath = args[0]
+      const argsFamilyName = args[1]
+      const argsFamilyPlace = args[2]
+      const argsFamilyIndex = args[3]
 
       const newFamilyId = uuidv4();
       const newFamilyIndex = argsFamilyIndex
@@ -388,7 +392,8 @@ ipcMain.on('add-family', async (event, args) => {
       let familiesMap = JSON.parse(familiesMapFile.toString())
       familiesMap["families"].splice(newFamilyIndex, 0, {
         "id": newFamilyId,
-        "name": argsFamilyName
+        "name": argsFamilyName,
+        "place": argsFamilyPlace
       })
 
       fs.writeFileSync(path.join(rootPath, "families_map.json"), JSON.stringify(familiesMap))

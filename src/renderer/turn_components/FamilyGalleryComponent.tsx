@@ -9,7 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit } from '@mui/icons-material';
+import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done } from '@mui/icons-material';
 import { ipcRenderer } from 'electron';
 import React from 'react';
 
@@ -39,22 +39,12 @@ const StyledFab = styled(Fab)({
   margin: '0 auto',
 });
 
-const Img = styled('img')({
-  margin: 'auto',
-  display: 'block',
-  maxWidth: '100%',
-  maxHeight: '100%',
-});
-
-
 const ImgWithPointer = styled('img')({
     "&:hover": {
       cursor: "pointer",
       opacity: 0.8,
     },
 })
-
-
 
 const ImageListItemWithStyle = styled(ImageListItem)(({ theme }) => ({
     "&:hover": {
@@ -73,23 +63,27 @@ export default function FamilyGalleryComponent() {
     const [createEditFamilyModalOpen, setCreateEditFamilyModalOpen] = useState(false)
     const [createEditFamilyId, setCreateEditFamilyId] = useState("")
     const [createEditFamilyName, setCreateEditFamilyName] = useState("")
+    const [createEditFamilyPlace, setCreateEditFamilyPlace] = useState("")
     const [createEditFamilyAvatarPath, setCreateEditFamilyAvatarPath] = useState("")
 
     const handleCreateEditFamilyNameChange = (e: any) => setCreateEditFamilyName(e.target.value)
+    const handleCreateEditFamilyPlaceChange = (e: any) => setCreateEditFamilyPlace(e.target.value)
 
     const handleOpenNewFamilyModal = () => {
         setModalOfTypeCreate(true)
         setCreateEditFamilyId('')
         setCreateEditFamilyName('')
+        setCreateEditFamilyPlace('')
         setCreateEditFamilyAvatarPath('')
 
         setCreateEditFamilyModalOpen(true)
     }
 
-    const handleEditFamilyModalOpen = (familyId: string, familyName: string, familyAvatarImagePath: string) => {
+    const handleEditFamilyModalOpen = (familyId: string, familyName: string, familyPlace: string, familyAvatarImagePath: string) => {
         setModalOfTypeCreate(false)
         setCreateEditFamilyId(familyId)
         setCreateEditFamilyName(familyName)
+        setCreateEditFamilyPlace(familyPlace)
         setCreateEditFamilyAvatarPath(familyAvatarImagePath)
 
         setCreateEditFamilyModalOpen(true)        
@@ -158,6 +152,7 @@ export default function FamilyGalleryComponent() {
     function modifyFamily(e: any) {
         const familyId: string = createEditFamilyId
         const familyName: string = createEditFamilyName
+        const familyPlace: string = createEditFamilyPlace
         const familyAvatarPath: string = createEditFamilyAvatarPath
 
         window.electron.ipcRenderer.once('modify-family', (arg: any) => {
@@ -165,13 +160,14 @@ export default function FamilyGalleryComponent() {
             loadFamilyGalleryData()
         })
         
-        console.log("modifyFamily, ", "turnId:", familyId, "turnName:", familyName, "turnAvatarPath:", familyAvatarPath)
+        console.log("modifyFamily, ", "turnId:", familyId, "turnName:", familyName, "familyPlace:", familyPlace, "turnAvatarPath:", familyAvatarPath)
         setCreateEditFamilyModalOpen(false)
         if(familyId != null && familyId.length > 0) {
-            window.electron.ipcRenderer.sendMessage('modify-family', [familyId, familyName, familyAvatarPath])
+            window.electron.ipcRenderer.sendMessage('modify-family', [familyId, familyName, familyPlace, familyAvatarPath])
         }
         setCreateEditFamilyId("")
         setCreateEditFamilyName("")
+        setCreateEditFamilyPlace("")
         setCreateEditFamilyAvatarPath("")
     }
     
@@ -182,9 +178,10 @@ export default function FamilyGalleryComponent() {
             handleCloseNewFamilyModal()
             setCreateEditFamilyAvatarPath("")
             setCreateEditFamilyName("")
+            setCreateEditFamilyPlace("")
         })
     
-        window.electron.ipcRenderer.sendMessage('add-family', [createEditFamilyAvatarPath, createEditFamilyName, 0])
+        window.electron.ipcRenderer.sendMessage('add-family', [createEditFamilyAvatarPath, createEditFamilyName, createEditFamilyPlace, 0])
     }
 
     function deleteFamily(e: any, familyId: string) {
@@ -249,6 +246,12 @@ export default function FamilyGalleryComponent() {
                             label="Nazwa"
                             variant="filled" 
                             />
+                        <TextField value={createEditFamilyPlace}
+                            onChange={handleCreateEditFamilyPlaceChange}
+                            id="outlined-basic"
+                            label="Miejsce zamieszkania"
+                            variant="filled" 
+                            />
                         <Box display='flex' 
                             alignItems='center'
                             justifyContent='center'
@@ -263,7 +266,7 @@ export default function FamilyGalleryComponent() {
                                 }
                         </Box>
                         <StyledFab color='primary' onClick={(e) => {modalOfTypeCreate ? addFamily(e) : modifyFamily(e)}} >
-                            {modalOfTypeCreate ? <Add /> : <Edit />}
+                            {modalOfTypeCreate ? <Add /> : <Done />}
                         </StyledFab>
                     </Stack>
                 </Box>
@@ -313,8 +316,12 @@ export default function FamilyGalleryComponent() {
                         />
                         <ImageListItemBar
                             title={data['name']}
-                            subtitle={<span>Mieszka w : {data['name']}</span>}
-                            sx={{background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%, rgba(0,0,0,0) 100%)', paddingRight: 1 }}
+                            subtitle={"Miasto: " + (data['place'] == null || data['place'].length <= 0 ? "Niewiadomowo": data['place'])}
+                            sx={{
+                                background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%, rgba(0,0,0,0) 100%)',
+                                paddingRight: 1,
+                                textAlign: "center"
+                            }}
                             actionIcon={
                                 <>
                                     <IconButton
@@ -323,7 +330,7 @@ export default function FamilyGalleryComponent() {
                                         color="inherit"
                                         aria-label="go back"
                                         sx={{padding: 0, color: 'white'}}
-                                        onClick={(e: any) => handleEditFamilyModalOpen(data['id'], data['name'], data['imagePath'])}
+                                        onClick={(e: any) => handleEditFamilyModalOpen(data['id'], data['name'], data['place'], data['imagePath'])}
                                         >
                                         <Edit />
                                     </IconButton>
