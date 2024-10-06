@@ -9,7 +9,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, SwipeableDrawer, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done, Filter, FilterList } from '@mui/icons-material';
+import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done, Filter, FilterList, SortByAlpha } from '@mui/icons-material';
 import { ipcRenderer } from 'electron';
 import List from '@mui/material/List';
 import React from 'react';
@@ -65,6 +65,7 @@ export default function FamilyGalleryComponent() {
     const [createEditFamilyPlace, setCreateEditFamilyPlace] = useState("")
     const [createEditFamilyAvatarPath, setCreateEditFamilyAvatarPath] = useState("")
     
+    const [filterFamiliesAlphabetically, setFilterFamiliesAlphabetically] = useState<boolean>(false)
     const [filterFamilyName, setFilterFamilyName] = useState<string>(filterFamilyNameStorage())
     const [filterFamilyPlace, setFilterFamilyPlace] = useState<string>(filterFamilyPlaceStorage())
     
@@ -119,6 +120,15 @@ export default function FamilyGalleryComponent() {
 
         setDeleteFamilyDialogOpen(false);
     };
+
+    const handleFilterFamiliesAlphabetically = () => {
+        if(filterFamiliesAlphabetically){
+            familyVisibleGalleryData.sort((a: any, b: any) => a.name.localeCompare(b.name))
+        } else {
+            filterOutFamilyGalleryData(familyAllGalleryData, filterFamilyName, filterFamilyPlace)
+        }
+        setFilterFamiliesAlphabetically(!filterFamiliesAlphabetically)
+    }
     
     useEffect(() => {
         localStorage.setItem("filterFamilyName", filterFamilyName)
@@ -369,6 +379,15 @@ export default function FamilyGalleryComponent() {
                     </Typography>
                         <IconButton
                             size="large"
+                            sx={{backgroundColor: filterFamiliesAlphabetically ? "inherit" : "#b1c4dd", borderRadius: '0%'}}
+                            color="inherit"
+                            aria-label="Settings"
+                            onClick={(e: any) => { handleFilterFamiliesAlphabetically() }}
+                        >
+                            <SortByAlpha/>
+                        </IconButton>
+                        <IconButton
+                            size="large"
                             color="inherit"
                             aria-label="Settings"
                             onClick={(e: any) => { setFilterDrawerOpen(true) }}
@@ -386,7 +405,7 @@ export default function FamilyGalleryComponent() {
                     </Toolbar>
                 </AppBar>
 
-            <ImageList sx={{ width: '100vw', maxHeight: 'calc(100vh - 42px)', margin: 0, padding: 1}} cols={6} >
+            <ImageList sx={{ width: '100vw', maxHeight: 'calc(100vh - 42px)', margin: 0, padding: 1}} cols={4} >
                 {familyVisibleGalleryData.map((data: any) => (
                     <ImageListItem key={data["imagePath"]}>
                         <ImgWithPointer
