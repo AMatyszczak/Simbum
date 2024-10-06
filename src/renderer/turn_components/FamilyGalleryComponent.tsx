@@ -4,13 +4,14 @@ import Grid from '@mui/material/Grid2';
 import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
 import ButtonBase from '@mui/material/ButtonBase';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, TextField, Toolbar } from '@mui/material';
+import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, SwipeableDrawer, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done } from '@mui/icons-material';
+import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done, Filter, FilterList } from '@mui/icons-material';
 import { ipcRenderer } from 'electron';
+import List from '@mui/material/List';
 import React from 'react';
 
 
@@ -41,44 +42,53 @@ const StyledFab = styled(Fab)({
 
 const ImgWithPointer = styled('img')({
     "&:hover": {
-      cursor: "pointer",
-      opacity: 0.8,
+        cursor: "pointer",
+        opacity: 0.8,
     },
 })
 
-const ImageListItemWithStyle = styled(ImageListItem)(({ theme }) => ({
-    "&:hover": {
-      cursor: "pointer",
-      opacity: 0.8,
-      //boxShadow: `5px 10px ${theme.palette.primary.main}`,
-    },
-  }));
+const filterFamilyNameStorage = () => (localStorage.getItem("filterFamilyName") || "")
+const filterFamilyPlaceStorage = () => (localStorage.getItem("filterFamilyPlace") || "")
 
 export default function FamilyGalleryComponent() {
     const navigate = useNavigate();
-    const [galleryData, setFamilyData] = useState([])
+    const [familyAllGalleryData, setFamilyAllGaleryData] = useState([])
+    const [familyVisibleGalleryData, setFamilyVisibleGaleryData] = useState([])
     const [imageHash, setImageHash] = useState(Date.now())
-   
+    
+    const [filterDrawerOpen, setFilterDrawerOpen] = React.useState(false);
+
     const [modalOfTypeCreate, setModalOfTypeCreate] = useState<boolean>(false)
     const [createEditFamilyModalOpen, setCreateEditFamilyModalOpen] = useState(false)
     const [createEditFamilyId, setCreateEditFamilyId] = useState("")
     const [createEditFamilyName, setCreateEditFamilyName] = useState("")
     const [createEditFamilyPlace, setCreateEditFamilyPlace] = useState("")
     const [createEditFamilyAvatarPath, setCreateEditFamilyAvatarPath] = useState("")
-
+    
+    const [filterFamilyName, setFilterFamilyName] = useState<string>(filterFamilyNameStorage())
+    const [filterFamilyPlace, setFilterFamilyPlace] = useState<string>(filterFamilyPlaceStorage())
+    
     const handleCreateEditFamilyNameChange = (e: any) => setCreateEditFamilyName(e.target.value)
     const handleCreateEditFamilyPlaceChange = (e: any) => setCreateEditFamilyPlace(e.target.value)
-
+    const handleFilterFamilyNameChange = (e: any) => {
+        setFilterFamilyName(e.target.value)
+        filterOutFamilyGalleryData(familyAllGalleryData, e.target.value, filterFamilyPlace)
+    }
+    const handleFilterFamilyPlaceChange = (e: any) => { 
+        setFilterFamilyPlace(e.target.value)
+        filterOutFamilyGalleryData(familyAllGalleryData, filterFamilyName, e.target.value)
+    }
+    
     const handleOpenNewFamilyModal = () => {
         setModalOfTypeCreate(true)
         setCreateEditFamilyId('')
         setCreateEditFamilyName('')
         setCreateEditFamilyPlace('')
         setCreateEditFamilyAvatarPath('')
-
+        
         setCreateEditFamilyModalOpen(true)
     }
-
+    
     const handleEditFamilyModalOpen = (familyId: string, familyName: string, familyPlace: string, familyAvatarImagePath: string) => {
         setModalOfTypeCreate(false)
         setCreateEditFamilyId(familyId)
@@ -88,14 +98,14 @@ export default function FamilyGalleryComponent() {
 
         setCreateEditFamilyModalOpen(true)        
     }
-
+    
     const handleCloseNewFamilyModal = () => setCreateEditFamilyModalOpen(false)
-
+    
     const [deleteFamilyDialogOpen, setDeleteFamilyDialogOpen] = React.useState<boolean>(false);
     const [deleteFamilyId, setDeleteFamilyId] = React.useState<string>("")
     const [deleteFamilyName, setDeleteFamilyName] = React.useState<string>("")
     const [deleteFamilyPrompt, setDeleteFamilyPrompt] = React.useState<string>("")
-
+    
     const handleDeleteFamilyDialogOpen = (familyId:string, familyName: string) => {
         setDeleteFamilyId(familyId)
         setDeleteFamilyName(familyName)
@@ -109,16 +119,51 @@ export default function FamilyGalleryComponent() {
 
         setDeleteFamilyDialogOpen(false);
     };
+    
+    useEffect(() => {
+        localStorage.setItem("filterFamilyName", filterFamilyName)
+    }, [filterFamilyName])
 
+
+    useEffect(() => {
+        localStorage.setItem("filterFamilyPlace", filterFamilyPlace)
+    }, [filterFamilyPlace])
 
     useEffect(() => {
         loadFamilyGalleryData()
     }, [])
+
+    function filterOutFamilyGalleryData(galleryData: any, filterName: string, filterPlace: string) {
+        setFamilyVisibleGaleryData(galleryData.filter((family: any) => {
+            let result: boolean = true;
+            
+            if (filterName != null && filterName.length > 0) {
+                if (family.name.toLowerCase() != filterName.toLowerCase()) {
+                    result = false
+                    console.log(`name ${filterName} | ${family.name} result:`, result)
+                }
+            }
+
+            const familyPlace = family.place == null ? "Niewiadomowo" : family.place; 
+
+            if (filterPlace != null && filterPlace.length > 0) {
+                if (familyPlace.toLowerCase() != filterPlace.toLowerCase()) {
+                    result = false
+                    console.log(`place ${filterPlace} | ${family.place} result:`, result)
+                }
+            }
+            console.log("filter result:", result)
+            return result
+        }))
+    }
     
     function loadFamilyGalleryData() {
         
         window.electron.ipcRenderer.once('get-family-gallery-data', (arg: any) => {
-            setFamilyData(arg);
+            setFamilyAllGaleryData(arg);
+            setFamilyVisibleGaleryData(arg);
+            console.log('get-family-gallery-data', filterFamilyName, filterFamilyPlace)
+            filterOutFamilyGalleryData(arg, filterFamilyName, filterFamilyPlace);
             setImageHash(Date.now())
         })
 
@@ -207,6 +252,36 @@ export default function FamilyGalleryComponent() {
         <Box sx={{display: {flex: 1}}}>
             <CssBaseline />
 
+            <React.Fragment key={"bottom"}>
+            <SwipeableDrawer
+                anchor="bottom"
+                open={filterDrawerOpen}
+                onClose={(e: any) => setFilterDrawerOpen(false)}
+                onOpen={(e: any) => setFilterDrawerOpen(true)}
+            >
+                <Toolbar>
+                    <Typography  noWrap component="div">
+                        Filtruj rodziny
+                    </Typography>
+                </Toolbar>
+                <TextField 
+                    value={filterFamilyName}
+                    onChange={handleFilterFamilyNameChange}
+                    id="outlined-basic"
+                    label="Nazwa rodziny"
+                    variant="filled" 
+                    />
+
+                <TextField 
+                    value={filterFamilyPlace}
+                    onChange={handleFilterFamilyPlaceChange}
+                    id="outlined-basic"
+                    label="Miasto"
+                    variant="filled" 
+                    />
+            </SwipeableDrawer>
+            </React.Fragment>
+     
             <Dialog
                 open={deleteFamilyDialogOpen}
                 onClose={handleDeleteFamilyDialogClose}
@@ -296,6 +371,14 @@ export default function FamilyGalleryComponent() {
                             size="large"
                             color="inherit"
                             aria-label="Settings"
+                            onClick={(e: any) => { setFilterDrawerOpen(true) }}
+                        >
+                            <FilterList/>
+                        </IconButton>
+                        <IconButton
+                            size="large"
+                            color="inherit"
+                            aria-label="Settings"
                             onClick={navigateToSettings}
                         >
                             <SettingsIcon />
@@ -304,7 +387,7 @@ export default function FamilyGalleryComponent() {
                 </AppBar>
 
             <ImageList sx={{ width: '100vw', maxHeight: 'calc(100vh - 42px)', margin: 0, padding: 1}} cols={6} >
-                {galleryData.map((data: any) => (
+                {familyVisibleGalleryData.map((data: any) => (
                     <ImageListItem key={data["imagePath"]}>
                         <ImgWithPointer
                             srcSet={`file://${data["imagePath"]}`}
