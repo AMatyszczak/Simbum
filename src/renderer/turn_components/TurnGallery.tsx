@@ -5,39 +5,8 @@ import React from "react";
 import { useEffect, useState } from "react";
 import { render } from "react-dom";
 import { HistoryRouterProps, useLocation, useNavigate } from "react-router-dom";
+import { StyledModal, StyledFab, ImgWithPointer } from "./FamilyGalleryComponent";
 
-
-const ImgWithPointer = styled('img')({
-    "&:hover": {
-      cursor: "pointer",
-      opacity: 0.8,
-    },
-})
-
-const StyledModal = {
-  position: 'absolute' as 'absolute',
-  top: '50%',
-  left: '50%',
-  transform: 'translate(-50%, -50%)',
-  width: 400,
-  height: 300,
-  bgcolor: 'background.paper',
-  border: '2px solid #000',
-  boxShadow: 24,
-  pt: 2,
-  pr: 4,
-  pl: 4,
-  pb: 4
-};
-
-const StyledFab = styled(Fab)({
-  position: 'absolute',
-  zIndex: 1,
-  top: 325,
-  left: 0,
-  right: 0,
-  margin: '0 auto',
-});
 
 type LocationState = {
     state: {
@@ -214,11 +183,21 @@ export default function TurnGallery() {
                                 {modalOfTypeCreate ? "Dodaj nową turę" : `Edytuj`}
                             </Typography>
                         </AppBar>
-                        <TextField value={createEditTurnName} onChange={handleCreateEditTurnTitleChange} id="outlined-basic" label="Nazwa" variant="filled" />
-                        <Box display='flex' alignItems='center' justifyContent="center" sx={{width: 400, height: 200, backgroundColor: 'grey'}} onDragOver={onNewTurnImageDragOver} onDrop={(e) => onNewTurnImageDrop(e)}> 
+                        <TextField value={createEditTurnName} 
+                            onChange={handleCreateEditTurnTitleChange} 
+                            id="outlined-basic"
+                            label="Nazwa"
+                            variant="filled" 
+                            color="secondary"/>
+                        <Box display='flex'
+                            alignItems='center'
+                            justifyContent="center"
+                            sx={{minHeight: 320}}
+                            onDragOver={onNewTurnImageDragOver}
+                            onDrop={(e) => onNewTurnImageDrop(e)}> 
                                 {
                                     (createEditTurnAvatarPath != null && createEditTurnAvatarPath.length > 0) ?
-                                        <img src={"file://"+ createEditTurnAvatarPath} style={{"maxHeight": "200px"}}></img>                                
+                                        <img src={"file://"+ createEditTurnAvatarPath} style={{'objectFit': 'contain',"width": "100%"}}></img>                                
                                         : <AddPhotoAlternate style={{ fontSize: 40, color: 'white'}} onDrop={(e) => onNewTurnImageDrop(e)}/>
                                     
                                 }

@@ -13,7 +13,6 @@ body {
 
   overflow-x: hidden;
   overflow-y: hidden;
-  background: linear-gradient(#ebeffc, #c1d3e9 25%);
   margin: 0;
 }
 
@@ -62,7 +61,7 @@ body {
 
 .turn-image-description-content .ql-editor {
   font-family: Simsowo;
-  color: #1452ae;
+  /* color: #1452ae; */
 
   font-size: min(2.75vh, 2.75vw);
   text-align: justify;
@@ -92,7 +91,7 @@ body {
   aspect-ratio: 1;
   border-radius: 50%;
   border: 8px solid lightblue;
-  border-right-color: orange;
+  /* border-right-color: orange; */
   animation: l2 1s infinite linear;
 }
 @keyframes l2 {to{transform: rotate(1turn)}}

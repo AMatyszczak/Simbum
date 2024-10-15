@@ -9,13 +9,14 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, SwipeableDrawer, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
-import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done, Filter, FilterList, SortByAlpha } from '@mui/icons-material';
+import { AccountCircle, Add, AddPhotoAlternate, Delete, Edit, Done, Filter, FilterList, SortByAlpha, BorderColor } from '@mui/icons-material';
 import { ipcRenderer } from 'electron';
 import List from '@mui/material/List';
 import React from 'react';
+import { blueColor } from 'renderer/App';
 
 
-const StyledModal = {
+export const StyledModal = {
   position: 'absolute' as 'absolute',
   top: '50%',
   left: '50%',
@@ -23,15 +24,12 @@ const StyledModal = {
   width: 600,
   height: 500,
   bgcolor: 'background.paper',
-  border: '2px solid #000',
+  border: '2px solid',
+  borderColor: 'black',
   boxShadow: 24,
-  pt: 2,
-  pr: 4,
-  pl: 4,
-  pb: 4
 };
 
-const StyledFab = styled(Fab)({
+export const StyledFab = styled(Fab)({
   position: 'absolute',
   zIndex: 1,
   top: 470,
@@ -40,7 +38,7 @@ const StyledFab = styled(Fab)({
   margin: '0 auto',
 });
 
-const ImgWithPointer = styled('img')({
+export const ImgWithPointer = styled('img')({
     "&:hover": {
         cursor: "pointer",
         opacity: 0.8,
@@ -330,12 +328,14 @@ export default function FamilyGalleryComponent() {
                             id="outlined-basic"
                             label="Nazwa"
                             variant="filled" 
+                            color="secondary"
                             />
                         <TextField value={createEditFamilyPlace}
                             onChange={handleCreateEditFamilyPlaceChange}
                             id="outlined-basic"
                             label="Miejsce zamieszkania"
                             variant="filled" 
+                            color="secondary"
                             />
                         <Box display='flex' 
                             alignItems='center'
@@ -417,7 +417,7 @@ export default function FamilyGalleryComponent() {
                             onClick={(e:any) => onFamilyClick(e, data)}
                         />
                         <ImageListItemBar
-                            title={data['name']}
+                            title={<Typography>{data['name']}</Typography>}
                             subtitle={"Miasto: " + (data['place'] == null || data['place'].length <= 0 ? "Niewiadomowo": data['place'])}
                             sx={{
                                 background: 'linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.3) 100%, rgba(0,0,0,0) 100%)',

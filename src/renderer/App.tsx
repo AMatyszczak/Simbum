@@ -11,9 +11,34 @@ import { ThemeProvider, createTheme } from '@mui/material';
 // import f from './../../assets/fonts/LoucosLyne_thesimssansbold.otf';
 // import font from '../../assets/fonts'
 import LoucosLyne_thesimssansbold from '../../assets/fonts/Loucos Lyne - thesimssansboldsc.woff2'
+import deepPurple from '@mui/material/colors/deepPurple';
+import { lightBlue } from '@mui/material/colors';
 
-
+// e3eaf9
+export const blueColor: string = "#0949ab"
 export const theme = createTheme({
+  palette: {
+    primary: {
+      light: '#C0CFE3',
+      main: '#b1c4dd',
+      dark: '#7B899A',
+      contrastText: blueColor,
+    },
+    secondary: {
+      light: 'rgba(103, 183, 247)',
+      main: "#42a5f5",
+      dark: '#2E73AB',
+      contrastText: lightBlue[500],
+    },
+    text: {
+      primary: blueColor,
+      secondary: "rgba(19,106,224,0.6)",
+    },
+    background: {
+      default: '#e3eafc',
+      paper: '#e3eafc'
+    },
+  },
   typography: {
     fontFamily: [
       'LoucosLyne_thesimssansbold'
