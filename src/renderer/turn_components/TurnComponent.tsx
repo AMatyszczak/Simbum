@@ -1,21 +1,16 @@
 import '../App.css';
 import 'react-quill/dist/quill.snow.css';
 import DescriptionEditor from './DescriptionEditor';
-import TurnNameEditor from './TurnNameEditor';
-import SettingsButtonComponent from '../settings/SettingsButtonComponent';
 import button_right from '../../../assets/buttons/button_right.png';
-import button_right_plus from '../../../assets/buttons/button_right_plus.png';
 import button_left from '../../../assets/buttons/button_left.png';
-import button_left_plus from '../../../assets/buttons/button_left_plus.png';
 import placeholder from '../../../assets/img_placeholder.png';
 import SettingsIcon from '@mui/icons-material/Settings';
 import 'react-quill/dist/quill.snow.css';
-import React, { useEffect, useState, useRef } from 'react';
-import { Link, Location, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowBack, Add, Delete } from '@mui/icons-material';
+import { useEffect, useState, useRef } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { ArrowBack, Delete } from '@mui/icons-material';
 import Grid from '@mui/material/Grid2';
-import { AppBar, Toolbar, IconButton, Typography, Box, Button, Container, CssBaseline, ButtonBase, styled, ImageList, ImageListItem, Stack } from '@mui/material';
-import { relative } from 'path';
+import { AppBar, Toolbar, IconButton, Typography, Box, CssBaseline, ButtonBase, Stack } from '@mui/material';
 
 
 type LocationState = {

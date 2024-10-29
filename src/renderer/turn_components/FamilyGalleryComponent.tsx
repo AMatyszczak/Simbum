@@ -1,10 +1,7 @@
 import { styled } from '@mui/material/styles';
 
-import Grid from '@mui/material/Grid2';
-import Paper from '@mui/material/Paper';
 import Typography from '@mui/material/Typography';
-import ButtonBase from '@mui/material/ButtonBase';
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import SettingsIcon from '@mui/icons-material/Settings';
 import { AppBar, Avatar, Badge, Box, Button, Card, CardActionArea, CardContent, CardHeader, CardMedia, CssBaseline, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Divider, Fab, IconButton, ImageList, ImageListItem, ImageListItemBar, Modal, Stack, SwipeableDrawer, TextField, Toolbar } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -146,7 +143,7 @@ export default function FamilyGalleryComponent() {
             let result: boolean = true;
             
             if (filterName != null && filterName.length > 0) {
-                if (family.name.toLowerCase() != filterName.toLowerCase()) {
+                if (!family.name.toLowerCase().includes(filterName.toLowerCase())) {
                     result = false
                     console.log(`name ${filterName} | ${family.name} result:`, result)
                 }
@@ -155,7 +152,7 @@ export default function FamilyGalleryComponent() {
             const familyPlace = family.place == null ? "Niewiadomowo" : family.place; 
 
             if (filterPlace != null && filterPlace.length > 0) {
-                if (familyPlace.toLowerCase() != filterPlace.toLowerCase()) {
+                if (!familyPlace.toLowerCase().includes(filterPlace.toLowerCase())) {
                     result = false
                     console.log(`place ${filterPlace} | ${family.place} result:`, result)
                 }
@@ -277,7 +274,8 @@ export default function FamilyGalleryComponent() {
                     onChange={handleFilterFamilyNameChange}
                     id="outlined-basic"
                     label="Nazwa rodziny"
-                    variant="filled" 
+                    variant="filled"
+                    color="secondary"
                     />
 
                 <TextField 
@@ -286,6 +284,7 @@ export default function FamilyGalleryComponent() {
                     id="outlined-basic"
                     label="Miasto"
                     variant="filled" 
+                    color="secondary"
                     />
             </SwipeableDrawer>
             </React.Fragment>
@@ -300,7 +299,7 @@ export default function FamilyGalleryComponent() {
                     Uwaga! Czy na pewno chcesz usunąć {deleteFamilyName}? .
                 </DialogTitle>
                 <DialogContent>
-                    <TextField autoFocus id="standard-basic" label="Aby usunać wpisz 'Potwierdzam'" variant="standard" sx={{width: 1}} onChange={(e:any) => setDeleteFamilyPrompt(e.target.value)}/>
+                    <TextField autoFocus color="secondary" id="standard-basic" label="Aby usunać wpisz 'Potwierdzam'" variant="standard" sx={{width: 1}} onChange={(e:any) => setDeleteFamilyPrompt(e.target.value)}/>
                 </DialogContent>
                 <DialogActions>
                 <Button onClick={handleDeleteFamilyDialogClose}>Nie</Button>

@@ -1,7 +1,8 @@
-import { Link, Navigate, useNavigate } from 'react-router-dom';
-import arrow_left from '../../../assets/buttons/arrow_left.svg';
-import './SettingsComponent.css';
+import { styled } from '@mui/material/styles';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { AppBar, Box, Button, CssBaseline, IconButton, Stack, Toolbar, Typography } from '@mui/material';
+import { ArrowBack } from '@mui/icons-material';
 
 interface SettingsComponentState {
   pathToUserFiles: string;
@@ -41,28 +42,47 @@ export default function SettingsComponent(props: SettingsComponentProps) {
 
   if(newPathSet) { return <Navigate to="/familyGallery"/> }
   else return(
-          <>
-            <button type="button" className="return-button">
-              {
-                isPathToDataSet() ?
-                    <img src={arrow_left} alt="" onClick={handleReturnToPreviousPage}/>
-                    : <img src={arrow_left} className="return-button-icon-gray disabled" alt="" />
-              }
-            </button>
-            <div className="settings-content">
-            Wybierz miejsce, gdzie będą zapisywane twoje dane
-              <button
-                type="button"
-                onClick={selectPath}
-                className="select-data-source-path-button"
-                >
-                Wybierz folder
-              </button>
-            </div>
-            {
-              pathToUserFiles ? <span>Obecnie jest to: {pathToUserFiles}</span> : ""
-            }
-            
-          </>
+          <Box sx={{flexGrow: 1}}>
+
+                <AppBar position="static" color='primary'>
+                    <Toolbar variant='dense'>
+                    <Typography
+                        variant="h6"
+                        noWrap
+                        component="div"
+                        sx={{ display: { xs: 'none', sm: 'block' }, flexGrow: 1}}
+                        align="center"
+                    >
+                    Ustawienia   
+                    </Typography>
+
+                      <IconButton
+                          size="large"
+                          edge="start"
+                          color="inherit"
+                          aria-label="go back"
+                          onClick={handleReturnToPreviousPage}
+                      >
+                          <ArrowBack />
+                      </IconButton>
+                    </Toolbar>
+                </AppBar>
+            <CssBaseline />
+            <Box sx={{ border: 1, margin: '2em'}}>
+              <Box className="settings-content">
+                <Stack direction={'row'} sx={{justifyContent: 'left', alignItems:'center'}} gap={'1em'}>
+                  <Typography>Miejsce danych SimBum</Typography>
+                  <Button
+                    sx={{display: 'flex' }}
+                    onClick={selectPath}
+                    variant='contained'
+                    >
+                    {pathToUserFiles ? <span>Zmień folder SimBum</span> : "Wybierz folder SimBum"}
+                  </Button>
+                  <Typography> {pathToUserFiles ? 'Obecnie:' : ''} </Typography><Typography color='secondary'> { pathToUserFiles ? pathToUserFiles : ''}</Typography>
+                </Stack>
+              </Box>  
+            </Box>
+          </Box>
           );
         }
