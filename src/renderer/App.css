@@ -16,6 +16,11 @@ body {
   margin: 0;
 }
 
+#thumbnails-stack {
+  overflow-y: auto;
+  scrollbar-gutter: stable
+}
+
 .turn-image-thumbnail-list {
   display: flex;
   max-width: calc(80vw);
@@ -45,7 +50,7 @@ body {
 }
 
 .single-thumbnail:hover {
-  background-size: cover;
+  /* background-size: cover; */
   opacity: 0.4;
 }
 

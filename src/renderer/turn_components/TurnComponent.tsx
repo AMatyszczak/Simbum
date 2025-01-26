@@ -91,30 +91,6 @@ export default function TurnComponent() {
     window.electron.ipcRenderer.sendMessage('get-turn', [familyId, turnId]);  
   }
 
-  function isLastTurnDisplayed(): boolean {
-    return turnIndex >= allturnsIds.length - 1
-  }
-
-  function isFirstTurnDisplayed(): boolean {
-    return turnIndex <= 0
-  }
-
-  function onNextTurnClick() {
-    if(!isLastTurnDisplayed()) {
-      const nextIndex: number = turnIndex + 1
-      setTurnIndex(nextIndex)
-      loadTurnById(familyId, allturnsIds[nextIndex], 0);
-    }
-  }
-
-  function onPrevTurnClick() {
-    if(!isFirstTurnDisplayed()) {
-      const nextIndex: number = turnIndex - 1
-      setTurnIndex(nextIndex)
-      loadTurnById(familyId, allturnsIds[nextIndex], 0);
-    }
-  }
-
   function deleteMainEventImage(): any {
     if(turnImages.length >= 1) {
       window.electron.ipcRenderer.sendMessage('page-image-deleted', [familyId, turnId, turnEventImageId]);
@@ -181,6 +157,7 @@ export default function TurnComponent() {
   
   function handleDragOver(e: any) {
     e.preventDefault();
+    console.log("handleDragOver")
     if (isDragging) {
       let element: any = e.target.id == 'thumbnails-stack' ? e.target : e.target.parentElement
       
@@ -200,7 +177,6 @@ export default function TurnComponent() {
 
   function handleLeave(e: any) {
     e.preventDefault();
-
     if(isDragging && e.relatedTarget.id != "thumbnails-stack" && e.relatedTarget.id != "single-thumbnail") {
       setIsDrawing(false)
       setShowedThumbnails([...savedThumbnails])
@@ -212,6 +188,7 @@ export default function TurnComponent() {
 
   function handleDragEnter(e: any) {
     e.preventDefault();
+    console.log("drag enter")
 
     if (e.target.parentElement.id == "thumbnails-stack" && !isDragging) {
       const postionOfImageOnThumbnails = determinePositionOfImage(e.target.parentElement, e.clientY, e.target.parentElement.children.item(0).clientHeight, false)
